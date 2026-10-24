@@ -250,7 +250,7 @@ async function loadJobs(){
     const r=await fetch(API,{method:'POST',body:JSON.stringify({action:'getAll'})});
     const data=await r.json();
     if(data.jobs&&data.jobs.length){
-      jobs=data.jobs.map((j,i)=>({
+      const sheetJobs=data.jobs.map((j,i)=>({
         id:String(j.id||j.ID||'')||String(j.name||j.Name||'x').toLowerCase().replace(/\s+/g,'-')+'-'+i,
         name:String(j.name||j.Name||''),
         type:String(j.type||j.Type||'Roof'),
@@ -264,6 +264,8 @@ async function loadJobs(){
         split:j.split==='true'||j.split===true,
         splitWith:String(j.splitWith||j.SplitWith||''),
       }));
+      // Use sheet data as source of truth — it's the permanent store
+      jobs=sheetJobs;
       localStorage.setItem('tb3',JSON.stringify(jobs));
     } else {
       const c=localStorage.getItem('tb3');
@@ -273,7 +275,13 @@ async function loadJobs(){
   render();
 }
 
-async function apiCall(action,data){try{await fetch(API,{method:'POST',body:JSON.stringify({action,...data})});}catch(e){}}
+async function apiCall(action,data){
+  const r=await fetch(API,{method:'POST',body:JSON.stringify({action,...data})});
+  const text=await r.text();
+  const json=JSON.parse(text);
+  if(json.error)throw new Error(json.error);
+  return json;
+}
 
 // ── STATS ─────────────────────────────────────────────────────────────────────
 function calcStats(){
@@ -599,6 +607,8 @@ function closeForm(){document.getElementById('formOverlay').classList.remove('sh
 async function saveJob(){
   const name=document.getElementById('fName').value.trim();
   if(!name){showToast('Enter a name');return;}
+  const saveBtn=document.querySelector('.f-gold');
+  saveBtn.textContent='Saving...';saveBtn.disabled=true;
   const trades=Array.from(document.querySelectorAll('.tc-chip[data-t].on')).map(e=>e.dataset.t).join(', ')||'Roof';
   const isSplit=document.getElementById('splitYes').classList.contains('on');
   const job={
@@ -613,20 +623,36 @@ async function saveJob(){
     split:isSplit,
     splitWith:document.getElementById('fSplitWith').value||'',
   };
+  // Save to sheet FIRST — wait for confirmation
+  try{
+    const result=await apiCall('save',job);
+    // Use the ID the sheet assigned if new
+    if(result.id&&!editId)job.id=result.id;
+  }catch(e){
+    saveBtn.textContent='Save';saveBtn.disabled=false;
+    showToast('❌ Sheet save failed — check connection');
+    return; // Don't close form if sheet save failed
+  }
+  // Only update local state after sheet confirmed
   if(editId){const i=jobs.findIndex(j=>j.id===editId);if(i>=0)jobs[i]=job;}
   else jobs.unshift(job);
   localStorage.setItem('tb3',JSON.stringify(jobs));
-  closeForm();render();showToast(editId?'Updated ✓':'Job added ✓');
-  apiCall('save',job);
+  closeForm();render();
+  showToast(editId?'Saved ✓':'Added ✓');
 }
 
 async function deleteJob(){
   if(!editId||!confirm('Delete this job?'))return;
   const id=editId;
+  const name=jobs.find(j=>j.id===id)?.name||'';
+  try{
+    await apiCall('delete',{id,name});
+  }catch(e){
+    showToast('❌ Delete failed — check connection');return;
+  }
   jobs=jobs.filter(j=>j.id!==id);
   localStorage.setItem('tb3',JSON.stringify(jobs));
   closeForm();render();showToast('Deleted');
-  apiCall('delete',{id});
 }
 
 function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500);}
