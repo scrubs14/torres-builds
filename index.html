@@ -221,6 +221,15 @@ input,select,textarea,button{font-family:var(--font-b);}
       <div class="fg"><label class="lbl">Squares</label><input class="inp" id="f-sq" type="number" placeholder="28"></div>
     </div>
     <div class="fg"><label class="lbl">Notes</label><input class="inp" id="f-notes" placeholder="Storm date, details..."></div>
+    <div class="fg"><label class="lbl">Split Deal?</label>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <div id="split-no" class="tc on" onclick="setSplit(false)">Full Deal</div>
+        <div id="split-yes" class="tc" onclick="setSplit(true)">Split Commission</div>
+      </div>
+      <div id="split-with-wrap" style="display:none;margin-top:8px;">
+        <input class="inp" id="f-splitwith" placeholder="Other rep's name">
+      </div>
+    </div>
     <div class="form-btns">
       <button class="fbtn fbtn-gold" onclick="saveJob()">Save</button>
       <button class="fbtn fbtn-red" id="f-del" onclick="deleteJob()" style="display:none">Delete</button>
@@ -283,6 +292,8 @@ async function loadJobs(){
         carrier:String(j.carrier||j.Carrier||''),
         notes:String(j.notes||j.Notes||''),
         squares:parseFloat(j.squares||j.Squares)||0,
+        split:j.split==='true'||j.split===true||j.Split==='true',
+        splitWith:String(j.splitWith||j.SplitWith||''),
       }));
       localStorage.setItem('tb_v2',JSON.stringify(jobs));
     } else {
@@ -371,6 +382,7 @@ function renderActive(){
           <div class="jc-right">
             ${hasPayout?`<div class="jc-payout">${fmtS(j.payout)}</div>`:`<div class="jc-payout pending">TBD</div>`}
             <span class="phase-pill" style="background:${pc}22;color:${pc}">${j.phase}</span>
+            ${j.split?`<span style="font-size:8px;font-weight:700;padding:2px 6px;border-radius:6px;background:rgba(74,142,194,0.15);color:#4a8ec2;display:inline-block;margin-top:2px;">SPLIT</span>`:``}
           </div>
         </div>
       </div>`;
@@ -411,13 +423,41 @@ function renderTrophy(){
   document.getElementById('mainArea').innerHTML = html;
 }
 
+function getAvgPayoutPerSq(){
+  // Get completed roof jobs with both squares and payout
+  const roofJobs = jobs.filter(j=>
+    j.phase==='Complete' &&
+    j.squares>0 && j.payout>0 &&
+    !j.split && // exclude split deals for true avg
+    (j.type||'').toLowerCase().includes('roof')
+  );
+  if(!roofJobs.length) return null;
+  const totalPayout = roofJobs.reduce((s,j)=>s+j.payout,0);
+  const totalSq = roofJobs.reduce((s,j)=>s+j.squares,0);
+  return {
+    avgPerSq: totalPayout/totalSq,
+    jobCount: roofJobs.length,
+    totalPayout,
+    totalSq,
+    jobs: roofJobs
+  };
+}
+
 function renderCalc(){
+  const avgData = getAvgPayoutPerSq();
+  const completedRoof = jobs.filter(j=>j.phase==='Complete'&&(j.type||'').toLowerCase().includes('roof')&&j.payout>0);
+  const totalCollected = completedRoof.reduce((s,j)=>s+j.payout,0);
+  const totalSq = completedRoof.reduce((s,j)=>s+j.squares,0);
+
   document.getElementById('mainArea').innerHTML = `
   <div class="calc-wrap">
     <div class="calc-card">
-      <div class="calc-title">Job Income Calculator</div>
+      <div class="calc-title">Job Income Projector</div>
+      ${avgData?`<div style="background:var(--gold-bg);border:1px solid rgba(200,146,42,0.25);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:11px;color:var(--gold);">
+        📊 Based on your <strong>${avgData.jobCount} completed roof jobs</strong> — your avg payout is <strong>${fmt(avgData.avgPerSq)}/sq</strong>
+      </div>`:`<div style="background:var(--card2);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:11px;color:var(--dim);">Add completed jobs with square counts to see your personal avg payout/sq</div>`}
       <div class="fg row">
-        <div class="fg"><label class="lbl">Square Count</label><input class="inp" id="c-sq" type="number" placeholder="28" oninput="calcResult()"></div>
+        <div class="fg"><label class="lbl">Square Count *</label><input class="inp" id="c-sq" type="number" placeholder="28" oninput="calcResult()"></div>
         <div class="fg"><label class="lbl">Shingle Type</label>
           <select class="sel" id="c-type" onchange="calcResult()">
             <option value="arch">Architectural</option>
@@ -433,23 +473,59 @@ function renderCalc(){
           </select>
         </div>
         <div class="fg"><label class="lbl">Actual Contract ($)</label>
-          <input class="inp" id="c-contract" type="number" placeholder="Optional" oninput="calcResult()">
+          <input class="inp" id="c-contract" type="number" placeholder="Optional override" oninput="calcResult()">
+        </div>
+      </div>
+      <div class="fg"><label class="lbl">Deal Type</label>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <div id="cc-full" class="tc on" onclick="setCCalcSplit(false)">Full Deal</div>
+          <div id="cc-split" class="tc" onclick="setCCalcSplit(true)">Split Deal</div>
         </div>
       </div>
       <div id="calc-output"></div>
     </div>
-    <div class="calc-card">
-      <div class="calc-title">Your Numbers</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        ${jobs.filter(j=>j.phase==='Complete').slice(0,6).map(j=>`
-          <div style="background:var(--card2);border-radius:8px;padding:10px;">
-            <div style="font-size:10px;color:var(--dim);margin-bottom:3px;">${hs(j.name.split(' ')[0])}</div>
-            <div style="font-size:16px;font-weight:700;color:var(--green);">${fmtS(j.payout)}</div>
-            <div style="font-size:9px;color:var(--dim);">${fmtS(j.contract)} contract</div>
-          </div>`).join('')}
+    ${completedRoof.length?`<div class="calc-card">
+      <div class="calc-title">Your Track Record</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+        <div style="background:var(--card2);border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:4px;">Jobs Done</div>
+          <div style="font-family:var(--font-d);font-size:22px;font-weight:900;color:var(--white);">${completedRoof.length}</div>
+        </div>
+        <div style="background:var(--card2);border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:4px;">Total Sq</div>
+          <div style="font-family:var(--font-d);font-size:22px;font-weight:900;color:var(--gold);">${totalSq||'—'}</div>
+        </div>
+        <div style="background:var(--card2);border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:4px;">Collected</div>
+          <div style="font-family:var(--font-d);font-size:20px;font-weight:900;color:var(--green);">${fmtK(totalCollected)}</div>
+        </div>
       </div>
-    </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        ${completedRoof.sort((a,b)=>b.payout-a.payout).slice(0,6).map(j=>{
+          const pps = j.squares>0?(j.payout/j.squares).toFixed(0):0;
+          const pct = j.contract>0?((j.payout/j.contract)*100).toFixed(1):0;
+          return `<div style="background:var(--card2);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:12px;font-weight:600;color:var(--white);">${hs(j.name)}</div>
+              <div style="font-size:10px;color:var(--dim);">${j.squares?j.squares+' sq · ':''}${fmtS(j.contract)} contract${j.split?' · SPLIT':''}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:15px;font-weight:700;color:var(--green);">${fmtS(j.payout)}</div>
+              ${pct>0?`<div style="font-size:9px;color:var(--dim);">${pct}%</div>`:''}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`:''}
   </div>`;
+}
+
+let calcSplit = false;
+function setCCalcSplit(isSplit){
+  calcSplit=isSplit;
+  document.getElementById('cc-full')?.classList.toggle('on',!isSplit);
+  document.getElementById('cc-split')?.classList.toggle('on',isSplit);
+  calcResult();
 }
 
 function calcResult(){
@@ -457,7 +533,9 @@ function calcResult(){
   const type = document.getElementById('c-type')?.value||'arch';
   const lead = document.getElementById('c-lead')?.value||'company';
   const actualContract = parseFloat(document.getElementById('c-contract')?.value)||0;
-  if(!sq){document.getElementById('calc-output').innerHTML='';return;}
+  const out = document.getElementById('calc-output');
+  if(!out)return;
+  if(!sq){out.innerHTML='';return;}
 
   const pricePerSq = type==='metal'?METAL_PRICE:ARCH_PRICE;
   const buildPerSq = type==='metal'?METAL_BUILD:ARCH_BUILD;
@@ -467,22 +545,36 @@ function calcResult(){
   const op = lead==='selfgen'?0.05:0.15;
   const opAmt = contract * op;
   const gross = contract - build - opAmt;
-  const payout = gross * 0.5;
-  const pct = contract>0?((payout/contract)*100):0;
+  const formulaPayout = gross * 0.5 * (calcSplit?0.5:1);
+  const pct = contract>0?((formulaPayout/contract)*100):0;
   const pctClass = pct>=20?'pct-good':pct>=12?'pct-ok':'pct-bad';
 
-  document.getElementById('calc-output').innerHTML = `
+  // Your personal avg projection
+  const avgData = getAvgPayoutPerSq();
+  const avgPayout = avgData ? avgData.avgPerSq * sq * (calcSplit?0.5:1) : null;
+
+  out.innerHTML = `
     <div class="calc-result">
-      <div class="cr-row"><span class="cr-label">Suggested Contract</span><span class="cr-val gold">${fmt(suggestedContract)}</span></div>
-      ${actualContract>0?`<div class="cr-row"><span class="cr-label">Actual Contract</span><span class="cr-val">${fmt(contract)}</span></div>`:''}
-      <div class="cr-row"><span class="cr-label">Build Cost (${sq} sq × $${buildPerSq}/sq)</span><span class="cr-val red">-${fmt(build)}</span></div>
-      <div class="cr-row"><span class="cr-label">O&P (${(op*100).toFixed(0)}%)</span><span class="cr-val red">-${fmt(opAmt)}</span></div>
+      <div class="cr-row"><span class="cr-label">Suggested Contract (${sq} sq × $${pricePerSq}/sq)</span><span class="cr-val gold">${fmt(suggestedContract)}</span></div>
+      ${actualContract>0?`<div class="cr-row"><span class="cr-label">Using Actual Contract</span><span class="cr-val">${fmt(contract)}</span></div>`:''}
+      <div class="cr-row"><span class="cr-label">Build Cost (${sq} sq × $${buildPerSq}/sq)</span><span class="cr-val red">−${fmt(build)}</span></div>
+      <div class="cr-row"><span class="cr-label">O&P (${(op*100).toFixed(0)}%)</span><span class="cr-val red">−${fmt(opAmt)}</span></div>
       <div class="cr-row"><span class="cr-label">Gross Margin</span><span class="cr-val">${fmt(gross)}</span></div>
+      ${calcSplit?`<div class="cr-row"><span class="cr-label">Split (÷2)</span><span class="cr-val" style="color:#4a8ec2">50% to you</span></div>`:''}
       <div class="cr-row" style="border-top:1px solid rgba(61,184,122,0.3);margin-top:6px;padding-top:10px;">
-        <span class="cr-label" style="font-weight:700;color:var(--white)">YOUR PAYOUT</span>
-        <span class="cr-val big">${fmt(payout)}</span>
+        <span class="cr-label" style="font-weight:700;color:var(--white)">FORMULA PAYOUT</span>
+        <span class="cr-val big">${fmt(formulaPayout)}</span>
       </div>
       <div class="cr-row"><span class="cr-label">Payout %</span><span class="cr-val ${pctClass}">${pct.toFixed(1)}%</span></div>
+      ${avgPayout?`
+      <div style="border-top:1px solid rgba(200,146,42,0.2);margin-top:10px;padding-top:10px;">
+        <div class="cr-row">
+          <span class="cr-label" style="color:var(--gold);font-weight:700;">YOUR AVG PROJECTION</span>
+          <span class="cr-val" style="font-family:var(--font-d);font-size:22px;font-weight:900;color:var(--gold);">${fmt(avgPayout)}</span>
+        </div>
+        <div class="cr-row"><span class="cr-label" style="font-size:9px;">Based on your ${avgData.jobCount} completed jobs at ${fmt(avgData.avgPerSq)}/sq avg</span><span></span></div>
+        ${Math.abs(avgPayout-formulaPayout)>100?`<div class="cr-row"><span class="cr-label" style="font-size:9px;">Difference from formula</span><span class="cr-val" style="font-size:12px;color:${avgPayout>formulaPayout?'var(--green)':'var(--red)'};">${avgPayout>formulaPayout?'+':''}${fmt(avgPayout-formulaPayout)}</span></div>`:''}
+      </div>`:''}
     </div>`;
 }
 
@@ -504,6 +596,7 @@ function openDetail(id){
       <div class="detail-stat"><div class="ds-label">My Payout</div><div class="ds-val" style="color:var(--green)">${payout>0?fmt(payout):'Pending'}</div></div>
       <div class="detail-stat"><div class="ds-label">Revenue %</div><div class="ds-val" style="color:${pctColor}">${pct>0?pct+'%':'—'}</div></div>
       <div class="detail-stat"><div class="ds-label">Squares</div><div class="ds-val">${j.squares||'—'}</div></div>
+      ${j.split?`<div class="detail-stat" style="grid-column:1/-1;background:rgba(74,142,194,0.08);border:1px solid rgba(74,142,194,0.2)"><div class="ds-label" style="color:#4a8ec2">Split Deal</div><div class="ds-val" style="font-size:14px;color:#4a8ec2">${j.splitWith?'With '+hs(j.splitWith):'Commission split'}</div></div>`:''}
     </div>
     ${j.notes?`<div class="sheet-notes">${hs(j.notes)}</div>`:''}
     <div class="sheet-btns">
@@ -527,6 +620,11 @@ function openFormFromDetail(){
 
 // ── FORM ──────────────────────────────────────────────────────────────────────
 function toggleTrade(el){el.classList.toggle('on');}
+function setSplit(isSplit){
+  document.getElementById('split-no').classList.toggle('on',!isSplit);
+  document.getElementById('split-yes').classList.toggle('on',isSplit);
+  document.getElementById('split-with-wrap').style.display=isSplit?'block':'none';
+}
 function getSelectedTrades(){return Array.from(document.querySelectorAll('.tc.on')).map(e=>e.dataset.t).join(', ')||'Roof';}
 function setTradeChips(type){
   document.querySelectorAll('.tc').forEach(el=>{
@@ -548,6 +646,8 @@ function openForm(id){
   document.getElementById('f-sq').value=j?.squares||'';
   document.getElementById('f-notes').value=j?.notes||'';
   document.getElementById('f-del').style.display=j?'block':'none';
+  setSplit(j?.split===true||j?.split==='true');
+  document.getElementById('f-splitwith').value=j?.splitWith||'';
   setTradeChips(j?.type||'Roof');
   document.getElementById('formOverlay').classList.add('show');
   setTimeout(()=>document.getElementById('f-name').focus(),300);
@@ -558,6 +658,7 @@ function closeForm(){document.getElementById('formOverlay').classList.remove('sh
 async function saveJob(){
   const name=document.getElementById('f-name').value.trim();
   if(!name){showToast('Enter a name');return;}
+  const isSplit=document.getElementById('split-yes').classList.contains('on');
   const job={
     id:editingId||Date.now().toString(),
     name,
@@ -569,6 +670,8 @@ async function saveJob(){
     carrier:document.getElementById('f-carrier').value,
     squares:parseFloat(document.getElementById('f-sq').value)||0,
     notes:document.getElementById('f-notes').value,
+    split:document.getElementById('split-yes').classList.contains('on'),
+    splitWith:document.getElementById('f-splitwith').value||'',
   };
   if(editingId){const i=jobs.findIndex(j=>j.id===editingId);if(i>=0)jobs[i]=job;}
   else jobs.unshift(job);
