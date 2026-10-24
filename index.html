@@ -181,8 +181,8 @@ input,select,textarea,button{font-family:var(--font-b);}
 
 <script>
 // ─── GOOGLE SHEETS ────────────────────────────────────────────────────────────
-const SHEET_ID = 'NEW_SHEET_ID'; // Will be replaced after sheet creation
-const API_URL = 'https://script.google.com/macros/s/SCRIPT_ID/exec'; // Will be set
+const API_URL = 'https://script.google.com/macros/s/AKfycbwifsHA7co0VvAc9FGtEMUyDbqNw2hFL1C67fonDYOy0AlK0YmFAWtCP0ltCV1dkqc/exec';
+let sheetReady = false;
 
 const PHASES = ['Lead','Inspection','Filed','Approved','In Progress','Complete'];
 const TYPE_ICONS = {Roof:'🏠',Concrete:'🏗',Handyman:'🔨'};
@@ -327,7 +327,58 @@ function openEdit(id){
   setTimeout(()=>openModal('formModal'),200);
 }
 
-function saveJob(){
+
+
+// ─── GOOGLE SHEETS SYNC ───────────────────────────────────────────────────────
+function saveToStorage(){
+  try{localStorage.setItem('torres_builds',JSON.stringify(jobs));}catch(e){}
+}
+
+async function apiCall(action, data){
+  const r = await fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify({action, ...data})
+  });
+  return r.json();
+}
+
+async function loadFromStorage(){
+  // Show loading state
+  document.getElementById('activeJobs').innerHTML = '<div style="color:var(--dim);font-size:13px;padding:12px 0;">Loading from Google Sheets...</div>';
+  try {
+    const r = await apiCall('getAll', {});
+    if(r.jobs && r.jobs.length > 0){
+      jobs = r.jobs.map(j => ({
+        id: String(j.id||j.ID||''),
+        name: String(j.name||j.Name||''),
+        type: String(j.type||j.Type||'Roof'),
+        date: String(j.date||j.Date||''),
+        phase: String(j.phase||j.Phase||'Lead').trim(),
+        contract: parseFloat(j.contract||j.Contract)||0,
+        payout: parseFloat(j.payout||j.Payout)||0,
+        notes: String(j.notes||j.Notes||''),
+      }));
+      saveToStorage();
+      renderAll();
+      sheetReady = true;
+    } else {
+      // No data in sheet yet — load sample data for demo
+      const cached = localStorage.getItem('torres_builds');
+      if(cached){ jobs=JSON.parse(cached); renderAll(); }
+      else { loadSampleData(); }
+      sheetReady = true;
+    }
+  } catch(e) {
+    // Fallback to localStorage
+    const cached = localStorage.getItem('torres_builds');
+    if(cached){ jobs=JSON.parse(cached); }
+    else { loadSampleData(); }
+    renderAll();
+    console.log('Sheet error, using local cache:', e);
+  }
+}
+
+async function saveJob(){
   const name=document.getElementById('f-name').value.trim();
   if(!name){showToast('Enter a name');return;}
   const job={
@@ -349,28 +400,23 @@ function saveJob(){
   saveToStorage();
   closeModal('formModal');
   renderAll();
-  showToast(editingId?'Job updated ✓':'Job added ✓');
+  showToast(editingId?'Saving...':'Saving...');
+  // Sync to sheet
+  try{
+    await apiCall('save', job);
+    showToast(editingId?'Job updated ✓':'Job added ✓');
+  }catch(e){showToast('Saved locally');}
 }
 
-function deleteJob(){
+async function deleteJob(){
   if(!editingId||!confirm('Delete this job?'))return;
-  jobs=jobs.filter(j=>j.id!==editingId);
+  const id = editingId;
+  jobs=jobs.filter(j=>j.id!==id);
   saveToStorage();
   closeModal('formModal');
   renderAll();
   showToast('Deleted');
-}
-
-// ─── STORAGE (localStorage until Google Sheet connected) ──────────────────────
-function saveToStorage(){
-  try{localStorage.setItem('torres_builds',JSON.stringify(jobs));}catch(e){}
-}
-function loadFromStorage(){
-  try{
-    const s=localStorage.getItem('torres_builds');
-    if(s){jobs=JSON.parse(s);renderAll();}
-    else{loadSampleData();}
-  }catch(e){loadSampleData();}
+  try{ await apiCall('delete', {id}); }catch(e){}
 }
 
 // ─── MODAL HELPERS ────────────────────────────────────────────────────────────
