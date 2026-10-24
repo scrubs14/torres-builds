@@ -441,8 +441,21 @@ function renderAll(){renderStats();renderJobs();}
 const canvas = document.getElementById('scene');
 const ctx = canvas.getContext('2d');
 let t = 0;
-let winking = false;
-let winkTimer = 0;
+let mode = 'fighting'; // fighting | coffee
+let modeTimer = 0;
+let chickens = [];
+let feathers = [];
+let stars = [];
+let batSwing = 0;
+let batDir = 1;
+let coffeeAlpha = 0;
+
+// Init chickens
+for(let i=0;i<4;i++) chickens.push({
+  x: 40+i*60, y: 0, vx: (Math.random()-0.5)*3,
+  vy: -2-Math.random()*2, alive: true,
+  rot: 0, phase: Math.random()*Math.PI*2
+});
 
 function resizeCanvas(){
   canvas.width=canvas.offsetWidth*window.devicePixelRatio;
@@ -453,134 +466,330 @@ resizeCanvas();
 window.addEventListener('resize',resizeCanvas);
 
 canvas.addEventListener('click',()=>{
-  winking=true;winkTimer=60;
-  showToast("💪 Let's get it!");
+  if(mode==='coffee'){mode='fighting';modeTimer=0;showToast("Back to work! 🦅");}
+  else{showToast("GET WRECKED 🏏");}
 });
+
+function spawnChicken(W,H){
+  chickens.push({
+    x: Math.random()<0.5?-20:W+20,
+    y: H*0.5+Math.random()*H*0.2,
+    vx: Math.random()<0.5?2:-2,
+    vy: -1-Math.random()*1.5,
+    alive: true, rot: 0, phase: Math.random()*Math.PI*2
+  });
+}
+
+function spawnFeathers(x,y){
+  for(let i=0;i<6;i++) feathers.push({
+    x,y,vx:(Math.random()-0.5)*5,vy:-2-Math.random()*3,
+    rot:Math.random()*Math.PI*2,life:1,size:3+Math.random()*4
+  });
+}
+
+function drawGokuHair(ctx,cx,cy,sc){
+  ctx.fillStyle='#FFD700';
+  // Goku super saiyan spiky hair
+  const spikes=[
+    [-4,-18,7,16],[-1,-24,6,14],[4,-22,7,15],
+    [9,-18,6,14],[12,-12,5,12],[-8,-12,5,11]
+  ];
+  spikes.forEach(([dx,dy,w,h])=>{
+    ctx.save();
+    ctx.translate(cx+dx*sc,cy+dy*sc);
+    ctx.rotate(((dx>0?15:-15)+Math.sin(t*2)*3)*Math.PI/180);
+    ctx.beginPath();
+    ctx.moveTo(-w*sc/2,h*sc/2);
+    ctx.lineTo(w*sc/2,h*sc/2);
+    ctx.lineTo(0,-h*sc/2);
+    ctx.closePath();ctx.fill();
+    ctx.restore();
+  });
+  // Hair glow aura
+  const aura=ctx.createRadialGradient(cx,cy-10*sc,2,cx,cy-10*sc,22*sc);
+  aura.addColorStop(0,'rgba(255,220,0,0.4)');
+  aura.addColorStop(1,'rgba(255,220,0,0)');
+  ctx.fillStyle=aura;
+  ctx.beginPath();ctx.arc(cx,cy-10*sc,22*sc,0,Math.PI*2);ctx.fill();
+}
+
+function drawChicken(ctx,c,W,H){
+  const bob=Math.sin(t*3+c.phase)*2;
+  const cx=c.x, cy=c.y+bob;
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(c.rot);
+  // Body
+  ctx.fillStyle='#f5f0e0';
+  ctx.beginPath();ctx.ellipse(0,0,10,8,0,0,Math.PI*2);ctx.fill();
+  // Head
+  ctx.fillStyle='#f5f0e0';
+  ctx.beginPath();ctx.arc(10,-4,6,0,Math.PI*2);ctx.fill();
+  // Beak
+  ctx.fillStyle='#e8a020';
+  ctx.beginPath();ctx.moveTo(16,-4);ctx.lineTo(20,-3);ctx.lineTo(16,-2);ctx.closePath();ctx.fill();
+  // Eye
+  ctx.fillStyle='#222';ctx.beginPath();ctx.arc(12,-5,1.5,0,Math.PI*2);ctx.fill();
+  // Comb
+  ctx.fillStyle='#e02020';
+  ctx.beginPath();ctx.arc(10,-10,3,0,Math.PI);ctx.fill();
+  // Legs
+  ctx.strokeStyle='#e8a020';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(-2,7);ctx.lineTo(-4,14);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(2,7);ctx.lineTo(4,14);ctx.stroke();
+  // Wings flap
+  const flap=Math.sin(t*6+c.phase)*15;
+  ctx.fillStyle='#e0d8c0';
+  ctx.save();ctx.rotate(flap*Math.PI/180);
+  ctx.beginPath();ctx.ellipse(-5,-2,10,5,Math.PI/6,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+  ctx.restore();
+}
 
 function drawScene(){
   const W=canvas.offsetWidth, H=canvas.offsetHeight;
   ctx.clearRect(0,0,W,H);
 
-  // Sky gradient
+  // Sky
   const sky=ctx.createLinearGradient(0,0,0,H*0.65);
-  sky.addColorStop(0,'#5ba3d9');sky.addColorStop(1,'#87CEEB');
+  sky.addColorStop(0,'#4a90d9');sky.addColorStop(1,'#87CEEB');
   ctx.fillStyle=sky;ctx.fillRect(0,0,W,H*0.65);
-
-  // Clouds
-  drawCloud(ctx,W*0.15+Math.sin(t*0.3)*8,H*0.1,60);
-  drawCloud(ctx,W*0.7+Math.sin(t*0.2+1)*6,H*0.06,80);
-  drawCloud(ctx,W*0.45+Math.sin(t*0.25+2)*5,H*0.16,50);
 
   // Ground
   const gr=ctx.createLinearGradient(0,H*0.65,0,H);
   gr.addColorStop(0,'#5a8a5a');gr.addColorStop(1,'#3a5a3a');
   ctx.fillStyle=gr;ctx.fillRect(0,H*0.65,W,H*0.35);
 
-  // House
-  const hx=W*0.5-55, hy=H*0.32;
-  // Walls
-  ctx.fillStyle='#eaeade';ctx.fillRect(hx,hy,110,80);
-  // Brick front (left half)
-  ctx.fillStyle='#8B3A2A';ctx.fillRect(hx,hy,55,80);
-  // Roof
-  ctx.fillStyle='#2a2a2a';
-  ctx.beginPath();ctx.moveTo(hx-12,hy);ctx.lineTo(W*0.5,hy-42);ctx.lineTo(hx+122,hy);ctx.closePath();ctx.fill();
-  // Door
-  ctx.fillStyle='#3a1a0a';ctx.fillRect(W*0.5-10,hy+48,20,32);
-  // Windows
-  ctx.fillStyle='#88aacc';
-  ctx.fillRect(hx+8,hy+18,22,18);ctx.fillRect(hx+68,hy+18,22,18);
-  // Chimney
-  ctx.fillStyle='#6a3a2a';ctx.fillRect(hx+78,hy-32,16,36);
+  // Clouds
+  drawCloud(ctx,W*0.12+Math.sin(t*0.2)*5,H*0.08,55);
+  drawCloud(ctx,W*0.65+Math.sin(t*0.15)*6,H*0.05,70);
 
-  // ROOF SLOPE (where Chris stands)
-  const rx=W*0.5-30, ry=hy-20;
-
-  // Shadow under Chris
-  ctx.fillStyle='rgba(0,0,0,0.15)';
-  ctx.beginPath();ctx.ellipse(rx+20,ry+68,22,5,0,0,Math.PI*2);ctx.fill();
-
-  // Animated Chris
-  const bob=Math.sin(t*2)*1.5;
-  const cx2=rx+12, cy=ry+bob;
-
-  // Legs (shorts)
-  ctx.fillStyle='#3a3a5a';
-  ctx.fillRect(cx2+2,cy+38,9,14); // left leg
-  ctx.fillRect(cx2+13,cy+38,9,14); // right leg
-  // Shoes
-  ctx.fillStyle='#111';
-  ctx.fillRect(cx2,cy+52,11,5);
-  ctx.fillRect(cx2+12,cy+52,11,5);
-  // Body - green tshirt
-  ctx.fillStyle='#2d5c2d';
-  ctx.fillRect(cx2,cy+18,24,22);
-  // Arms
-  const armSwing=Math.sin(t*2)*6;
-  ctx.fillStyle='#c8956c';
-  ctx.save();ctx.translate(cx2-3,cy+22);ctx.rotate((-20+armSwing)*Math.PI/180);ctx.fillRect(-4,-4,8,18);ctx.restore();
-  ctx.save();ctx.translate(cx2+27,cy+22);ctx.rotate((20-armSwing)*Math.PI/180);ctx.fillRect(-4,-4,8,18);ctx.restore();
-  // Head
-  ctx.fillStyle='#c8956c';
-  ctx.fillRect(cx2+3,cy+4,18,17);
-  // Hat brim
-  ctx.fillStyle='#111122';
-  ctx.fillRect(cx2-1,cy+3,26,4);
-  // Hat top
-  ctx.fillRect(cx2+3,cy-8,18,13);
-  // Eyes
-  if(winking&&winkTimer>0){
-    winkTimer--;
-    // Wink - right eye closed
-    ctx.fillStyle='#333';ctx.fillRect(cx2+6,cy+10,4,2);
-    ctx.beginPath();ctx.arc(cx2+15,cy+11,2.5,0,Math.PI*2);ctx.fillStyle='#333';ctx.fill();
-    if(winkTimer<=0)winking=false;
-  } else {
-    // Look up animation - eyes shift up
-    const eyeY = Math.sin(t*0.5)>0.7 ? cy+8 : cy+11;
-    ctx.fillStyle='#333';
-    ctx.beginPath();ctx.arc(cx2+7,eyeY,2.5,0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.arc(cx2+15,eyeY,2.5,0,Math.PI*2);ctx.fill();
-    // Occasionally looks up (at viewer)
-    if(Math.sin(t*0.5)>0.7){
-      ctx.strokeStyle='rgba(255,255,255,0.4)';ctx.lineWidth=1.5;
-      ctx.beginPath();ctx.moveTo(cx2+11,eyeY-8);ctx.lineTo(cx2+11,eyeY-20);ctx.stroke();
-    }
-  }
-  // Smile
-  ctx.strokeStyle='#7a4a2a';ctx.lineWidth=1.5;
-  ctx.beginPath();ctx.arc(cx2+11,cy+16,4,0.2,Math.PI-0.2);ctx.stroke();
-
-  // Hammer in right hand
-  const hamAngle=(Math.sin(t*3)*25)*Math.PI/180;
-  ctx.save();
-  ctx.translate(cx2+30,cy+22);
-  ctx.rotate(hamAngle);
-  ctx.fillStyle='#888';ctx.fillRect(-2,-18,4,22);
-  ctx.fillStyle='#555';ctx.fillRect(-6,-22,12,8);
-  ctx.restore();
-
-  // "Funny shirt" text on torso
-  ctx.fillStyle='rgba(255,255,255,0.7)';ctx.font='bold 5px Inter';
-  ctx.fillText('DEFUND',cx2+1,cy+28);ctx.fillText('MEDIA',cx2+3,cy+34);
-
-  // Sun
+  // Sun with aura
   ctx.fillStyle='#FFD700';
-  ctx.beginPath();ctx.arc(W*0.88,H*0.08,18,0,Math.PI*2);ctx.fill();
-  // Sun rays
+  ctx.beginPath();ctx.arc(W*0.87,H*0.1,16,0,Math.PI*2);ctx.fill();
   for(let i=0;i<8;i++){
-    const a=i*Math.PI/4+t*0.3;
+    const a=i*Math.PI/4+t*0.4;
     ctx.strokeStyle='rgba(255,215,0,0.5)';ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(W*0.88+Math.cos(a)*22,H*0.08+Math.sin(a)*22);
-    ctx.lineTo(W*0.88+Math.cos(a)*30,H*0.08+Math.sin(a)*30);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(W*0.87+Math.cos(a)*20,H*0.1+Math.sin(a)*20);
+    ctx.lineTo(W*0.87+Math.cos(a)*28,H*0.1+Math.sin(a)*28);ctx.stroke();
   }
 
-  // Active job count badge on roof
-  const activeCount=jobs.filter(j=>j.phase!=='Complete').length;
-  if(activeCount>0){
-    ctx.fillStyle='#c8922a';ctx.beginPath();ctx.arc(W*0.5+52,hy-28,12,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#000';ctx.font='bold 11px Inter';ctx.textAlign='center';
-    ctx.fillText(activeCount,W*0.5+52,hy-24);ctx.textAlign='left';
+  // House (smaller, background)
+  const hx=W*0.62, hy=H*0.3;
+  ctx.fillStyle='#eaeade';ctx.fillRect(hx,hy,80,60);
+  ctx.fillStyle='#8B3A2A';ctx.fillRect(hx,hy,40,60);
+  ctx.fillStyle='#2a2a2a';
+  ctx.beginPath();ctx.moveTo(hx-8,hy);ctx.lineTo(hx+40,hy-30);ctx.lineTo(hx+88,hy);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#3a1a0a';ctx.fillRect(hx+33,hy+38,14,22);
+  ctx.fillStyle='#88aacc';
+  ctx.fillRect(hx+6,hy+14,16,13);ctx.fillRect(hx+50,hy+14,16,13);
+
+  // Active badge on house
+  const ac=jobs.filter(j=>j.phase!=='Complete').length;
+  if(ac>0){
+    ctx.fillStyle='#c8922a';ctx.beginPath();ctx.arc(hx+88,hy-18,11,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#000';ctx.font='bold 10px Arial';ctx.textAlign='center';
+    ctx.fillText(ac,hx+88,hy-14);ctx.textAlign='left';
+  }
+
+  // ── MODE SWITCH ──────────────────────────────────────────────────────────────
+  modeTimer++;
+  if(mode==='fighting'&&modeTimer>400){mode='coffee';modeTimer=0;coffeeAlpha=0;}
+  else if(mode==='coffee'&&modeTimer>220){mode='fighting';modeTimer=0;
+    // Respawn chickens when back to fighting
+    for(let i=0;i<3;i++) spawnChicken(W,H);
+  }
+
+  const CX=W*0.28, CY=H*0.52;
+
+  if(mode==='fighting'){
+    // Bat swing animation
+    batSwing+=0.18*batDir;
+    if(batSwing>1.4||batSwing<-0.3){batDir*=-1;
+      if(batSwing>1){
+        spawnFeathers(CX+30,CY-10);
+        // Hit nearest chicken
+        chickens.forEach(c=>{
+          if(c.alive&&Math.abs(c.x-CX)<60&&Math.abs(c.y-CY)<40){
+            c.vx=(c.x>CX?4:-4)+Math.random()*2;c.vy=-5-Math.random()*3;
+          }
+        });
+      }
+    }
+
+    // Update chickens
+    chickens.forEach(c=>{
+      if(!c.alive)return;
+      c.x+=c.vx;c.y+=c.vy;c.vy+=0.15;
+      c.rot+=c.vx*0.05;
+      if(c.y>H*0.7){c.vy=-Math.abs(c.vy)*0.6;c.rot=0;}
+      if(c.x<-40||c.x>W+40) c.alive=false;
+    });
+    chickens=chickens.filter(c=>c.alive||(c.y<H+30));
+    if(chickens.filter(c=>c.alive).length<2&&Math.random()<0.02) spawnChicken(W,H);
+
+    // Feathers
+    feathers.forEach(f=>{f.x+=f.vx;f.y+=f.vy;f.vy+=0.1;f.life-=0.02;f.rot+=0.1;});
+    feathers=feathers.filter(f=>f.life>0);
+
+    // Draw feathers
+    feathers.forEach(f=>{
+      ctx.save();ctx.translate(f.x,f.y);ctx.rotate(f.rot);
+      ctx.fillStyle=`rgba(240,235,200,${f.life})`;
+      ctx.beginPath();ctx.ellipse(0,0,f.size,f.size*0.4,0,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    });
+
+    // Draw chickens
+    chickens.forEach(c=>drawChicken(ctx,c,W,H));
+
+    // CHRIS - Goku style, fighting stance
+    const bob=Math.sin(t*4)*1.2;
+    const cy=CY+bob;
+
+    // Power aura around Chris
+    const auraR=ctx.createRadialGradient(CX,cy,5,CX,cy,38);
+    auraR.addColorStop(0,'rgba(255,220,0,0.15)');auraR.addColorStop(1,'rgba(255,220,0,0)');
+    ctx.fillStyle=auraR;ctx.beginPath();ctx.arc(CX,cy,38,0,Math.PI*2);ctx.fill();
+
+    // Shadow
+    ctx.fillStyle='rgba(0,0,0,0.2)';
+    ctx.beginPath();ctx.ellipse(CX,H*0.66,18,4,0,0,Math.PI*2);ctx.fill();
+
+    // Legs - fighting stance (wider)
+    ctx.fillStyle='#2244aa';
+    ctx.fillRect(CX-12,cy+28,10,18); // left
+    ctx.fillRect(CX+4,cy+28,10,18);  // right
+    // Shoes
+    ctx.fillStyle='#111';
+    ctx.fillRect(CX-14,cy+44,13,6);ctx.fillRect(CX+3,cy+44,13,6);
+
+    // Body - orange gi top
+    ctx.fillStyle='#e07010';
+    ctx.fillRect(CX-13,cy+8,26,22);
+    // Belt
+    ctx.fillStyle='#2244aa';ctx.fillRect(CX-13,cy+27,26,4);
+
+    // Shirt text
+    ctx.fillStyle='rgba(255,255,255,0.9)';ctx.font='bold 4.5px Arial';
+    ctx.textAlign='center';
+    ctx.fillText('F**K THE',CX,cy+18);ctx.fillText('COMMIES',CX,cy+25);
+    ctx.textAlign='left';
+
+    // Left arm - holding bat
+    ctx.fillStyle='#c8956c';
+    ctx.save();
+    ctx.translate(CX-14,cy+12);ctx.rotate(-0.3);
+    ctx.fillRect(-5,-4,9,20);ctx.restore();
+
+    // Right arm - swinging bat
+    ctx.save();
+    ctx.translate(CX+16,cy+10);ctx.rotate(batSwing);
+    ctx.fillStyle='#c8956c';ctx.fillRect(-4,-4,9,20);
+    // BAT
+    ctx.fillStyle='#8B4513';ctx.fillRect(-3,-28,7,24);
+    ctx.fillStyle='#a0522d';ctx.fillRect(-5,-38,11,12);
+    ctx.restore();
+
+    // Head
+    ctx.fillStyle='#c8956c';
+    ctx.beginPath();ctx.arc(CX,cy-2,12,0,Math.PI*2);ctx.fill();
+
+    // Eyes - determined look
+    ctx.fillStyle='#222';
+    ctx.beginPath();ctx.arc(CX-4,cy-3,2,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(CX+4,cy-3,2,0,Math.PI*2);ctx.fill();
+    // Eyebrows - angry
+    ctx.strokeStyle='#5a3520';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(CX-7,cy-7);ctx.lineTo(CX-1,cy-5);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(CX+7,cy-7);ctx.lineTo(CX+1,cy-5);ctx.stroke();
+    // Smirk
+    ctx.strokeStyle='#7a4a2a';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(CX-3,cy+3);ctx.quadraticCurveTo(CX,cy+6,CX+4,cy+3);ctx.stroke();
+
+    // GOKU HAIR
+    drawGokuHair(ctx,CX,cy-2,1.0);
+
+  } else {
+    // COFFEE MODE
+    coffeeAlpha=Math.min(1,coffeeAlpha+0.03);
+    const cy=CY+5;
+
+    // Stump/log to sit on
+    ctx.fillStyle='#5a3a1a';ctx.fillRect(CX-18,cy+30,36,16);
+    ctx.fillStyle='#6a4a2a';ctx.fillRect(CX-18,cy+30,36,4);
+
+    // Shadow
+    ctx.fillStyle='rgba(0,0,0,0.15)';
+    ctx.beginPath();ctx.ellipse(CX,cy+48,20,4,0,0,Math.PI*2);ctx.fill();
+
+    // Legs sitting
+    ctx.fillStyle='#2244aa';
+    ctx.save();ctx.translate(CX-8,cy+30);ctx.rotate(0.4);ctx.fillRect(-5,0,10,18);ctx.restore();
+    ctx.save();ctx.translate(CX+8,cy+30);ctx.rotate(-0.4);ctx.fillRect(-5,0,10,18);ctx.restore();
+    // Feet
+    ctx.fillStyle='#111';
+    ctx.fillRect(CX-22,cy+44,12,6);ctx.fillRect(CX+10,cy+44,12,6);
+
+    // Body - orange gi
+    ctx.fillStyle='#e07010';
+    ctx.fillRect(CX-12,cy+8,24,24);
+    ctx.fillStyle='#2244aa';ctx.fillRect(CX-12,cy+29,24,4);
+
+    // Shirt text
+    ctx.fillStyle='rgba(255,255,255,0.9)';ctx.font='bold 4.5px Arial';
+    ctx.textAlign='center';
+    ctx.fillText('F**K THE',CX,cy+20);ctx.fillText('COMMIES',CX,cy+27);
+    ctx.textAlign='left';
+
+    // Arms - holding mug
+    ctx.fillStyle='#c8956c';
+    ctx.fillRect(CX-18,cy+10,8,18);
+    // Right arm bent holding mug
+    ctx.save();ctx.translate(CX+13,cy+12);ctx.rotate(-0.6);
+    ctx.fillRect(-4,0,8,16);ctx.restore();
+
+    // Coffee mug
+    ctx.fillStyle='#ffffff';ctx.fillRect(CX+2,cy+10,18,20);
+    ctx.fillStyle='#5a3a1a';ctx.fillRect(CX+4,cy+12,14,8);
+    // Mug handle
+    ctx.strokeStyle='#ffffff';ctx.lineWidth=3;
+    ctx.beginPath();ctx.arc(CX+22,cy+18,5,Math.PI*0.4,Math.PI*1.6);ctx.stroke();
+    // Steam
+    for(let i=0;i<3;i++){
+      const sx=CX+8+i*5;
+      const steamOff=Math.sin(t*2+i*1.2)*3;
+      ctx.strokeStyle=`rgba(200,200,200,${0.5+Math.sin(t*1.5+i)*0.3})`;ctx.lineWidth=1.5;
+      ctx.beginPath();
+      ctx.moveTo(sx+steamOff,cy+8);
+      ctx.quadraticCurveTo(sx-3+steamOff,cy+2,sx+steamOff,cy-5);
+      ctx.stroke();
+    }
+
+    // Head - relaxed
+    ctx.fillStyle='#c8956c';
+    ctx.beginPath();ctx.arc(CX,cy-2,12,0,Math.PI*2);ctx.fill();
+    // Eyes - relaxed/happy
+    ctx.strokeStyle='#333';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.arc(CX-4,cy-3,3,Math.PI*1.1,Math.PI*1.9);ctx.stroke();
+    ctx.beginPath();ctx.arc(CX+4,cy-3,3,Math.PI*1.1,Math.PI*1.9);ctx.stroke();
+    // Smile
+    ctx.strokeStyle='#7a4a2a';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.arc(CX,cy+3,4,0.2,Math.PI-0.2);ctx.stroke();
+    // Eyebrows relaxed
+    ctx.strokeStyle='#5a3520';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(CX-7,cy-7);ctx.lineTo(CX-2,cy-8);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(CX+7,cy-7);ctx.lineTo(CX+2,cy-8);ctx.stroke();
+
+    // Goku hair
+    drawGokuHair(ctx,CX,cy-2,1.0);
+
+    // "Coffee break" bubble
+    ctx.fillStyle='rgba(255,255,255,0.9)';
+    ctx.beginPath();ctx.roundRect(CX+22,cy-28,70,22,8);ctx.fill();
+    ctx.fillStyle='#333';ctx.font='bold 9px Arial';
+    ctx.fillText('coffee break ☕',CX+26,cy-13);
+    // Bubble tail
+    ctx.fillStyle='rgba(255,255,255,0.9)';
+    ctx.beginPath();ctx.moveTo(CX+22,cy-12);ctx.lineTo(CX+14,cy-6);ctx.lineTo(CX+28,cy-8);ctx.closePath();ctx.fill();
   }
 
   t+=0.04;
@@ -588,8 +797,8 @@ function drawScene(){
 }
 
 function drawCloud(ctx,x,y,w){
-  ctx.fillStyle='rgba(255,255,255,0.85)';
-  [[0,0,w*0.4],[w*0.25,-8,w*0.35],[w*0.5,0,w*0.35],[w*0.75,0,w*0.3]].forEach(([dx,dy,r])=>{
+  ctx.fillStyle='rgba(255,255,255,0.88)';
+  [[0,0,w*0.38],[w*0.22,-7,w*0.33],[w*0.48,0,w*0.33],[w*0.72,0,w*0.28]].forEach(([dx,dy,r])=>{
     ctx.beginPath();ctx.arc(x+dx,y+dy,r,0,Math.PI*2);ctx.fill();
   });
 }
