@@ -60,6 +60,8 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none;}
 .fbtn-gold{background:#c8922a;color:#000;}
 .fbtn-dark{background:#1a1d24;border:1px solid #22252e;color:#9da3b4;}
 .fbtn-red{background:none;border:1px solid #e05c5c;color:#e05c5c;}
+.trade-chip{background:#1a1d24;border:2px solid #22252e;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;color:#555c70;cursor:pointer;user-select:none;}
+.trade-chip.on{border-color:#c8922a;background:rgba(200,146,42,0.1);color:#c8922a;}
 
 /* TOAST */
 #toast{position:fixed;bottom:calc(env(safe-area-inset-bottom,16px)+80px);left:50%;transform:translateX(-50%);background:#3db87a;color:#000;font-size:12px;font-weight:700;padding:8px 18px;border-radius:20px;opacity:0;transition:opacity 0.3s;z-index:99;white-space:nowrap;pointer-events:none;}
@@ -110,9 +112,16 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none;}
 <div id="formOverlay">
   <div id="formCard">
     <div class="fc-title"><span id="fc-title">New Job</span><button class="fc-x" onclick="closeForm()">✕</button></div>
-    <div class="fg row">
-      <div class="fg"><label class="lbl">Client Name *</label><input class="inp" id="f-name" placeholder="Jane Smith"></div>
-      <div class="fg"><label class="lbl">Type</label><select class="sel" id="f-type"><option>Roof</option><option>Concrete</option><option>Handyman</option></select></div>
+    <div class="fg"><label class="lbl">Client Name *</label><input class="inp" id="f-name" placeholder="Jane Smith"></div>
+    <div class="fg"><label class="lbl">Trades (select all that apply)</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;" id="trade-chips">
+        <div class="trade-chip" data-trade="Roof" onclick="toggleTrade(this)">🏠 Roof</div>
+        <div class="trade-chip" data-trade="Gutters" onclick="toggleTrade(this)">🌊 Gutters</div>
+        <div class="trade-chip" data-trade="Siding" onclick="toggleTrade(this)">🪵 Siding</div>
+        <div class="trade-chip" data-trade="Concrete" onclick="toggleTrade(this)">🏗 Concrete</div>
+        <div class="trade-chip" data-trade="Decking" onclick="toggleTrade(this)">🪵 Decking</div>
+        <div class="trade-chip" data-trade="Handyman" onclick="toggleTrade(this)">🔨 Handyman</div>
+      </div>
     </div>
     <div class="fg row">
       <div class="fg"><label class="lbl">Date</label><input class="inp" id="f-date" type="date"></div>
@@ -150,7 +159,30 @@ const PHASE_COLORS = {
   Lead:'#555c70', Inspection:'#c8922a', Filed:'#4a8ec2',
   Approved:'#3db87a', 'In Progress':'#e8a020', Complete:'#2d8a5a'
 };
-const TYPE_ICONS = {Roof:'🏠',Concrete:'🏗',Handyman:'🔨'};
+const TYPE_ICONS = {Roof:'🏠',Concrete:'🏗',Handyman:'🔨',Gutters:'🌊',Siding:'🏗',Decking:'🪵'};
+function getTypeIcon(type){
+  if(!type)return'🏠';
+  const t=type.toLowerCase();
+  if(t.includes('concrete'))return'🏗';
+  if(t.includes('handyman'))return'🔨';
+  if(t.includes('gutter'))return'🌊';
+  if(t.includes('siding'))return'🪵';
+  if(t.includes('deck'))return'🪵';
+  return'🏠';
+}
+function getTypeLabel(type){
+  if(!type)return'Roof';
+  const t=type.toLowerCase();
+  const parts=[];
+  if(t.includes('roof'))parts.push('Roof');
+  if(t.includes('gutter'))parts.push('Gutters');
+  if(t.includes('siding'))parts.push('Siding');
+  if(t.includes('concrete'))parts.push('Concrete');
+  if(t.includes('deck'))parts.push('Decking');
+  if(t.includes('handyman'))parts.push('Handyman');
+  if(t.includes('redeck')||t.includes('re-deck'))parts.push('Re-deck');
+  return parts.length>0?parts.join(' + '):type;
+}
 
 let jobs = [];
 let editingId = null;
@@ -238,7 +270,7 @@ async function loadJobs(){
         name:String(j.name||j.Name||''),
         type:String(j.type||j.Type||'Roof'),
         date:String(j.date||j.Date||''),
-        phase:String(j.phase||j.Phase||'Lead').trim(),
+        phase:(()=>{const p=String(j.phase||j.Phase||'Lead').trim();const m={'complete':'Complete','in progress':'In Progress','lead':'Lead','inspection':'Inspection','filed':'Filed','approved':'Approved'};return m[p.toLowerCase()]||p;})(),
         contract:parseFloat(j.contract||j.Contract)||0,
         payout:parseFloat(j.payout||j.Payout)||0,
         carrier:String(j.carrier||j.Carrier||''),
@@ -757,7 +789,7 @@ function openZoom(jobId){
   el('zc-phase').style.background=pc+'22';
   el('zc-phase').style.color=pc;
   el('zc-name').textContent=job.name;
-  el('zc-date').textContent=(job.type?TYPE_ICONS[job.type]+' '+job.type+' · ':'')+fmtDate(job.date);
+  el('zc-date').textContent=(job.type?getTypeIcon(job.type)+' '+getTypeLabel(job.type)+' · ':'')+fmtDate(job.date);
   el('zc-contract').textContent=job.contract>0?'$'+job.contract.toLocaleString():'—';
   el('zc-payout').textContent=job.payout>0?'$'+job.payout.toLocaleString():'Pending';
   el('zc-carrier').textContent=job.carrier||'—';
@@ -783,6 +815,27 @@ function openEditFromZoom(){
 }
 
 // ── FORM ─────────────────────────────────────────────────────────────────────
+function toggleTrade(el){
+  el.classList.toggle('on');
+}
+
+function getSelectedTrades(){
+  return Array.from(document.querySelectorAll('.trade-chip.on')).map(el=>el.dataset.trade).join(', ');
+}
+
+function setTradeChips(typeStr){
+  document.querySelectorAll('.trade-chip').forEach(el=>{
+    const trade=el.dataset.trade.toLowerCase();
+    const str=(typeStr||'').toLowerCase();
+    el.classList.toggle('on', str.includes(trade));
+  });
+  // Default to Roof if nothing set
+  if(!typeStr||typeStr===''){
+    const roofChip=document.querySelector('.trade-chip[data-trade="Roof"]');
+    if(roofChip)roofChip.classList.add('on');
+  }
+}
+
 function startAddMode(){
   addMode=true;
   document.getElementById('addBtn').style.background='#e05c5c';
@@ -804,7 +857,7 @@ function openForm(jobId){
   const job=jobId?jobs.find(j=>j.id===jobId):null;
   document.getElementById('fc-title').textContent=job?'Edit Job':'New Job';
   document.getElementById('f-name').value=job?.name||'';
-  document.getElementById('f-type').value=job?.type||'Roof';
+  setTradeChips(job?.type||'');
   document.getElementById('f-date').value=job?.date||new Date().toISOString().split('T')[0];
   document.getElementById('f-phase').value=job?.phase||'Lead';
   document.getElementById('f-contract').value=job?.contract||'';
@@ -828,7 +881,7 @@ async function saveJob(){
   if(!name){showToast('Enter a name');return;}
   const job={
     id:editingId||Date.now().toString(),
-    name, type:document.getElementById('f-type').value,
+    name, type:getSelectedTrades()||'Roof',
     date:document.getElementById('f-date').value,
     phase:document.getElementById('f-phase').value,
     contract:parseFloat(document.getElementById('f-contract').value)||0,
