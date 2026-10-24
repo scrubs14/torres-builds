@@ -278,8 +278,12 @@ const getTypeLabel = t => {
 // ── DATA ──────────────────────────────────────────────────────────────────────
 async function loadJobs(){
   try{
-    const r = await fetch(API+'?action=getAll');
-    const data = await r.json();
+    const r = await fetch(API, {
+      method:'POST',
+      body: JSON.stringify({action:'getAll'})
+    });
+    const text = await r.text();
+    const data = JSON.parse(text);
     if(data.jobs&&data.jobs.length){
       jobs = data.jobs.map(j=>({
         id:String(j.id||j.ID||''),
