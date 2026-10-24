@@ -285,8 +285,8 @@ async function loadJobs(){
     const text = await r.text();
     const data = JSON.parse(text);
     if(data.jobs&&data.jobs.length){
-      jobs = data.jobs.map(j=>({
-        id:String(j.id||j.ID||''),
+      jobs = data.jobs.map((j,idx)=>({
+        id:String(j.id||j.ID||'')||String(j.name||j.Name||'no-name').replace(/\s+/g,'-').toLowerCase()+'-'+idx,
         name:String(j.name||j.Name||''),
         type:String(j.type||j.Type||'Roof'),
         date:String(j.date||j.Date||''),
