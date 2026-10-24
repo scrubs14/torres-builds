@@ -5,114 +5,95 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Torres Builds</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Barlow+Condensed:wght@700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Barlow+Condensed:wght@700;800;900&display=swap');
 :root{
   --black:#07080a;--surface:#0f1014;--card:#14161b;--card2:#1a1d24;
   --border:#22252e;--dim:#555c70;--text:#9da3b4;--white:#eef0f5;
-  --gold:#c8922a;--gold-bg:rgba(200,146,42,0.08);
-  --green:#3db87a;--green-bg:rgba(61,184,122,0.08);
-  --red:#e05c5c;--red-bg:rgba(224,92,92,0.08);
-  --blue:#4a8ec2;--blue-bg:rgba(74,142,194,0.08);
-  --orange:#e8a020;
-  --font-d:'Barlow Condensed',sans-serif;
-  --font-b:'Inter',sans-serif;
-  --safe-top:env(safe-area-inset-top,0px);
-  --safe-bot:env(safe-area-inset-bottom,0px);
+  --gold:#c8922a;--gold-bg:rgba(200,146,42,0.1);
+  --green:#3db87a;--green-bg:rgba(61,184,122,0.1);
+  --red:#e05c5c;--blue:#4a8ec2;--orange:#e8a020;--purple:#9b7fa8;
+  --font-d:'Barlow Condensed',sans-serif;--font-b:'Inter',sans-serif;
+  --safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;background:var(--black);color:var(--text);font-family:var(--font-b);font-size:14px;overflow:hidden;}
+html,body{height:100%;background:var(--black);color:var(--text);font-family:var(--font-b);overflow:hidden;}
 input,select,textarea,button{font-family:var(--font-b);}
 
-/* APP SHELL */
 #app{display:flex;flex-direction:column;height:100%;padding-top:var(--safe-top);}
 
 /* HEADER */
 .hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
 .brand{font-family:var(--font-d);font-size:22px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:var(--white);}
 .brand em{color:var(--gold);font-style:normal;}
-.hdr-right{display:flex;gap:8px;align-items:center;}
-.icon-btn{background:none;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:7px 12px;cursor:pointer;}
-.icon-btn.gold{background:var(--gold);border-color:var(--gold);color:#000;font-weight:700;}
+.add-btn{background:var(--gold);border:none;color:#000;font-family:var(--font-d);font-size:15px;font-weight:900;text-transform:uppercase;letter-spacing:1px;padding:8px 16px;border-radius:8px;cursor:pointer;}
 
 /* TABS */
 .tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;}
-.tab{flex:1;padding:10px 8px;text-align:center;font-size:11px;font-weight:600;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;letter-spacing:0.5px;text-transform:uppercase;}
+.tab{flex:1;padding:10px 4px;text-align:center;font-size:11px;font-weight:600;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;letter-spacing:0.5px;text-transform:uppercase;}
 .tab.active{color:var(--gold);border-bottom-color:var(--gold);}
 
-/* MAIN SCROLL */
 .main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 
-/* SUMMARY CARDS */
-.summary{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:14px 14px 0;}
-.sum-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;}
-.sum-card.wide{grid-column:1/-1;}
-.sum-label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:5px;font-weight:600;}
-.sum-val{font-family:var(--font-d);font-size:28px;font-weight:900;line-height:1;color:var(--white);}
-.sum-val.green{color:var(--green);}
-.sum-val.gold{color:var(--gold);}
-.sum-val.blue{color:var(--blue);}
-.sum-sub{font-size:10px;color:var(--dim);margin-top:3px;}
+/* ── STATS (Option C) ─────────────────────────────────────────────────────── */
+.stats-c{padding:14px 14px 0;}
+.stats-hero{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:10px;}
+.stats-hero-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+.sh-block .sh-label{font-size:9px;color:var(--dim);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px;font-weight:600;}
+.sh-block .sh-val{font-size:36px;font-weight:900;letter-spacing:-1px;line-height:1;font-family:var(--font-d);}
+.sh-block .sh-val.green{color:var(--green);}
+.sh-block .sh-val.gold{color:var(--gold);}
+.sh-divider{height:1px;background:var(--border);margin-bottom:14px;}
+.stats-row{display:flex;justify-content:space-between;}
+.sr-item{text-align:center;}
+.sr-val{font-size:17px;font-weight:700;color:var(--white);}
+.sr-label{font-size:8px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+.stats-mini{display:flex;gap:6px;}
+.sm-box{flex:1;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;}
+.sm-val{font-size:16px;font-weight:700;}
+.sm-label{font-size:8px;color:var(--dim);margin-top:2px;text-transform:uppercase;letter-spacing:0.5px;}
 
-/* PIPELINE BAR */
-.pipeline{margin:12px 14px 0;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;}
-.pipeline-title{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);font-weight:600;margin-bottom:10px;}
-.pipeline-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;gap:2px;margin-bottom:8px;}
-.pb-seg{border-radius:2px;transition:width 0.5s;}
+/* ── PIPELINE ─────────────────────────────────────────────────────────────── */
+.pipeline-wrap{padding:10px 14px 0;}
+.pipeline-bar{display:flex;height:5px;border-radius:3px;overflow:hidden;gap:2px;margin-bottom:6px;}
+.pb{border-radius:2px;min-width:3px;}
 .pipeline-legend{display:flex;gap:10px;flex-wrap:wrap;}
-.pl-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--dim);}
-.pl-dot{width:6px;height:6px;border-radius:50%;}
+.pl-item{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--dim);}
+.pl-dot{width:5px;height:5px;border-radius:50%;}
 
-/* SECTION HEADER */
-.section-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 14px 8px;}
-.section-title{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:700;}
-.section-count{font-size:10px;color:var(--dim);}
+/* ── SECTION HEADER ─────────────────────────────────────────────────────────*/
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 14px 10px;}
+.sec-title{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:700;}
+.sec-count{font-size:10px;color:var(--dim);}
 
-/* JOB CARDS */
-.job-list{padding:0 14px;display:flex;flex-direction:column;gap:8px;padding-bottom:20px;}
-.job-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color 0.15s;}
-.job-card:active{opacity:0.85;}
-.job-card.complete{border-left:3px solid var(--green);}
-.job-card.in-progress{border-left:3px solid var(--orange);}
-.job-card.approved{border-left:3px solid var(--green);}
-.job-card.filed{border-left:3px solid var(--blue);}
-.job-card.lead,.job-card.inspection{border-left:3px solid var(--dim);}
-.jc-main{display:flex;align-items:center;gap:12px;padding:13px 14px;}
-.jc-info{flex:1;min-width:0;}
-.jc-name{font-family:var(--font-d);font-size:18px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.jc-meta{font-size:11px;color:var(--dim);margin-top:2px;}
-.jc-right{text-align:right;flex-shrink:0;}
-.jc-payout{font-family:var(--font-d);font-size:20px;font-weight:800;color:var(--green);}
-.jc-payout.pending{color:var(--dim);font-size:13px;}
-.phase-pill{font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;margin-top:3px;display:inline-block;letter-spacing:0.5px;}
-.jc-trades{font-size:10px;color:var(--gold);margin-top:1px;}
+/* ── SWIPE LANES (Option 2) ──────────────────────────────────────────────── */
+.lane-wrap{margin-bottom:4px;}
+.lane-label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;padding:0 14px 8px;}
+.lane-scroll{display:flex;gap:10px;overflow-x:auto;padding:0 14px 12px;scrollbar-width:none;}
+.lane-scroll::-webkit-scrollbar{display:none;}
+.job-card{flex-shrink:0;width:185px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:opacity 0.15s;}
+.job-card:active{opacity:0.75;}
+.jc-phase-bar{height:3px;border-radius:2px;margin-bottom:12px;}
+.jc-phase-label{font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;}
+.jc-name{font-family:var(--font-d);font-size:17px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:var(--white);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.jc-carrier{font-size:10px;color:var(--dim);margin-bottom:3px;}
+.jc-type{font-size:10px;color:var(--gold);}
+.jc-date{font-size:10px;color:var(--dim);margin-top:6px;}
+.jc-payout{font-family:var(--font-d);font-size:18px;font-weight:800;color:var(--green);margin-top:8px;}
+.jc-split{font-size:8px;font-weight:700;color:var(--blue);background:rgba(74,142,194,0.12);padding:2px 6px;border-radius:5px;display:inline-block;margin-top:4px;}
 
-/* DETAIL SHEET */
-.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:100;display:none;transition:background 0.3s;}
-.sheet-overlay.show{display:block;background:rgba(0,0,0,0.75);}
-.sheet{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-radius:20px 20px 0 0;max-height:88vh;overflow-y:auto;z-index:101;transform:translateY(100%);transition:transform 0.35s cubic-bezier(0.34,1.2,0.64,1);padding-bottom:var(--safe-bot);}
-.sheet.show{transform:translateY(0);}
-.sheet-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:14px auto 18px;}
-.sheet-pad{padding:0 20px 20px;}
-.sheet-phase{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:3px 10px;border-radius:8px;display:inline-block;margin-bottom:10px;}
-.sheet-name{font-family:var(--font-d);font-size:26px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:var(--white);margin-bottom:3px;}
-.sheet-sub{font-size:11px;color:var(--dim);margin-bottom:18px;}
-.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
-.detail-stat{background:var(--card2);border-radius:10px;padding:11px 13px;}
-.ds-label{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:4px;font-weight:600;}
-.ds-val{font-size:19px;font-weight:700;color:var(--white);}
-.sheet-notes{background:var(--card2);border-radius:10px;padding:11px 13px;font-size:12px;color:var(--text);margin-bottom:14px;line-height:1.5;}
-.sheet-btns{display:flex;gap:8px;}
-.sbtn{flex:1;border:none;border-radius:9px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:0.5px;}
-.sbtn-gold{background:var(--gold);color:#000;}
-.sbtn-dark{background:var(--card2);border:1px solid var(--border);color:var(--text);}
-.sbtn-red{background:none;border:1px solid var(--red);color:var(--red);}
+/* ── TROPHY ──────────────────────────────────────────────────────────────── */
+.trophy-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 14px;}
+.tc{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:12px;padding:14px;cursor:pointer;}
+.tc:active{opacity:0.8;}
+.tc-icon{font-size:22px;margin-bottom:8px;}
+.tc-name{font-family:var(--font-d);font-size:15px;font-weight:800;text-transform:uppercase;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tc-payout{font-size:17px;font-weight:700;color:var(--green);margin-top:3px;}
+.tc-sub{font-size:9px;color:var(--dim);margin-top:3px;}
 
-/* FORM */
-.form-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:200;display:none;align-items:flex-end;justify-content:center;}
-.form-overlay.show{display:flex;}
-.form-card{background:var(--card);border-radius:20px 20px 0 0;width:100%;max-width:500px;padding:20px 18px calc(20px + var(--safe-bot));max-height:92vh;overflow-y:auto;}
-.form-title{font-family:var(--font-d);font-size:20px;font-weight:900;text-transform:uppercase;color:var(--gold);margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;}
-.fx-btn{background:none;border:none;color:var(--dim);font-size:22px;cursor:pointer;}
+/* ── CALCULATOR ──────────────────────────────────────────────────────────── */
+.calc-wrap{padding:14px;}
+.calc-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:12px;}
+.calc-title{font-family:var(--font-d);font-size:18px;font-weight:800;text-transform:uppercase;color:var(--gold);margin-bottom:14px;letter-spacing:1px;}
 .fg{display:flex;flex-direction:column;gap:4px;margin-bottom:11px;}
 .fg.row{flex-direction:row;gap:8px;}
 .fg.row>.fg{flex:1;margin-bottom:0;}
@@ -120,120 +101,127 @@ input,select,textarea,button{font-family:var(--font-b);}
 .inp{background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--white);font-size:14px;padding:10px 12px;outline:none;width:100%;}
 .inp:focus{border-color:var(--gold);}
 .sel{background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--white);font-size:14px;padding:10px 12px;outline:none;width:100%;-webkit-appearance:none;}
-.trade-wrap{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
-.tc{background:var(--card2);border:2px solid var(--border);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;color:var(--dim);cursor:pointer;user-select:none;}
-.tc.on{border-color:var(--gold);background:var(--gold-bg);color:var(--gold);}
-.form-btns{display:flex;gap:8px;margin-top:6px;}
-.fbtn{flex:1;border:none;border-radius:9px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;}
-.fbtn-gold{background:var(--gold);color:#000;}
-.fbtn-dark{background:var(--card2);border:1px solid var(--border);color:var(--text);}
-.fbtn-red{background:none;border:1px solid var(--red);color:var(--red);}
-
-/* CALCULATOR TAB */
-.calc-wrap{padding:14px;}
-.calc-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:12px;}
-.calc-title{font-family:var(--font-d);font-size:18px;font-weight:800;text-transform:uppercase;color:var(--gold);margin-bottom:16px;letter-spacing:1px;}
-.calc-result{background:var(--green-bg);border:1px solid rgba(61,184,122,0.25);border-radius:10px;padding:14px;margin-top:14px;}
+.tc-chip{background:var(--card2);border:2px solid var(--border);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;color:var(--dim);cursor:pointer;user-select:none;}
+.tc-chip.on{border-color:var(--gold);background:var(--gold-bg);color:var(--gold);}
+.calc-result{background:var(--green-bg);border:1px solid rgba(61,184,122,0.2);border-radius:10px;padding:14px;margin-top:12px;}
 .cr-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;}
-.cr-row+.cr-row{border-top:1px solid rgba(255,255,255,0.05);}
+.cr-row+.cr-row{border-top:1px solid rgba(255,255,255,0.04);}
 .cr-label{font-size:11px;color:var(--dim);}
-.cr-val{font-size:15px;font-weight:700;color:var(--white);}
-.cr-val.big{font-family:var(--font-d);font-size:26px;font-weight:900;color:var(--green);}
+.cr-val{font-size:14px;font-weight:700;color:var(--white);}
+.cr-val.big{font-family:var(--font-d);font-size:28px;font-weight:900;color:var(--green);}
 .cr-val.red{color:var(--red);}
 .cr-val.gold{color:var(--gold);}
-.cr-val.pct-good{color:var(--green);}
-.cr-val.pct-ok{color:var(--gold);}
-.cr-val.pct-bad{color:var(--red);}
-.calc-btn{width:100%;background:var(--gold);border:none;color:#000;font-family:var(--font-d);font-size:16px;font-weight:900;text-transform:uppercase;letter-spacing:1px;padding:13px;border-radius:9px;cursor:pointer;margin-top:12px;}
+.cr-val.g{color:var(--green);}
+.cr-val.o{color:var(--orange);}
+.avg-banner{background:var(--gold-bg);border:1px solid rgba(200,146,42,0.2);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:11px;color:var(--gold);}
 
-/* TROPHY TAB */
-.trophy-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px;}
-.trophy-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;border-left:3px solid var(--green);}
-.trophy-card:active{opacity:0.8;}
-.tc-icon{font-size:24px;margin-bottom:8px;}
-.tc-name{font-family:var(--font-d);font-size:15px;font-weight:800;text-transform:uppercase;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.tc-payout{font-size:18px;font-weight:700;color:var(--green);margin-top:3px;}
-.tc-date{font-size:10px;color:var(--dim);margin-top:2px;}
-.tc-type{font-size:9px;color:var(--gold);margin-top:2px;}
+/* ── TRACK RECORD ────────────────────────────────────────────────────────── */
+.tr-row{background:var(--card2);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.tr-name{font-size:12px;font-weight:600;color:var(--white);}
+.tr-sub{font-size:9px;color:var(--dim);margin-top:2px;}
+.tr-pay{font-size:14px;font-weight:700;color:var(--green);}
+.tr-pct{font-size:9px;color:var(--dim);}
 
-/* EMPTY */
-.empty{text-align:center;padding:48px 20px;color:var(--dim);}
-.empty-icon{font-size:40px;opacity:0.3;margin-bottom:12px;}
+/* ── SHEET ───────────────────────────────────────────────────────────────── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:100;display:none;}
+.overlay.show{display:block;background:rgba(0,0,0,0.75);}
+.sheet{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-radius:20px 20px 0 0;max-height:88vh;overflow-y:auto;z-index:101;transform:translateY(100%);transition:transform 0.32s cubic-bezier(0.34,1.2,0.64,1);padding-bottom:var(--safe-bot);}
+.sheet.show{transform:translateY(0);}
+.sh-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:14px auto 18px;}
+.sh-pad{padding:0 20px 20px;}
+.sh-phase{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:3px 10px;border-radius:8px;display:inline-block;margin-bottom:10px;}
+.sh-name{font-family:var(--font-d);font-size:26px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:var(--white);margin-bottom:3px;}
+.sh-sub{font-size:11px;color:var(--dim);margin-bottom:16px;}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.ds{background:var(--card2);border-radius:10px;padding:11px 13px;}
+.ds-l{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:3px;font-weight:600;}
+.ds-v{font-size:18px;font-weight:700;color:var(--white);}
+.sh-notes{background:var(--card2);border-radius:10px;padding:11px 13px;font-size:12px;color:var(--text);margin-bottom:14px;line-height:1.5;}
+.sh-btns{display:flex;gap:8px;}
+.sbtn{flex:1;border:none;border-radius:9px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;}
+.s-gold{background:var(--gold);color:#000;}
+.s-dark{background:var(--card2);border:1px solid var(--border);color:var(--text);}
+.s-red{background:none;border:1px solid var(--red);color:var(--red);}
 
-/* TOAST */
+/* ── FORM ────────────────────────────────────────────────────────────────── */
+.form-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:200;display:none;align-items:flex-end;justify-content:center;}
+.form-overlay.show{display:flex;}
+.form-card{background:var(--card);border-radius:20px 20px 0 0;width:100%;max-width:500px;padding:20px 18px calc(20px + var(--safe-bot));max-height:93vh;overflow-y:auto;}
+.form-title{font-family:var(--font-d);font-size:20px;font-weight:900;text-transform:uppercase;color:var(--gold);margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;}
+.fx{background:none;border:none;color:var(--dim);font-size:22px;cursor:pointer;}
+.trade-wrap{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
+.form-btns{display:flex;gap:8px;margin-top:6px;}
+.fbtn{flex:1;border:none;border-radius:9px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;}
+.f-gold{background:var(--gold);color:#000;}
+.f-dark{background:var(--card2);border:1px solid var(--border);color:var(--text);}
+.f-red{background:none;border:1px solid var(--red);color:var(--red);}
+
+/* ── TOAST ───────────────────────────────────────────────────────────────── */
 #toast{position:fixed;bottom:calc(var(--safe-bot) + 20px);left:50%;transform:translateX(-50%);background:var(--green);color:#000;font-size:12px;font-weight:700;padding:8px 18px;border-radius:20px;opacity:0;transition:opacity 0.3s;z-index:999;white-space:nowrap;pointer-events:none;}
 #toast.show{opacity:1;}
+.empty{text-align:center;padding:30px 20px;color:var(--dim);font-size:12px;}
 </style>
 </head>
 <body>
 <div id="app">
   <div class="hdr">
     <div class="brand">Torres <em>Builds</em></div>
-    <div class="hdr-right">
-      <button class="icon-btn" onclick="openForm(null)">+ Job</button>
-    </div>
+    <button class="add-btn" onclick="openForm(null)">+ Job</button>
   </div>
   <div class="tabs">
-    <div class="tab active" onclick="switchTab('active')">Active</div>
-    <div class="tab" onclick="switchTab('trophy')">Trophy Case</div>
-    <div class="tab" onclick="switchTab('calc')">Calculator</div>
+    <div class="tab active" onclick="switchTab('active',this)">Active</div>
+    <div class="tab" onclick="switchTab('trophy',this)">Trophies</div>
+    <div class="tab" onclick="switchTab('calc',this)">Calculator</div>
   </div>
-  <div class="main" id="mainArea"></div>
+  <div class="main" id="main"></div>
 </div>
 
-<!-- DETAIL SHEET -->
-<div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
-<div class="sheet" id="detailSheet">
-  <div class="sheet-handle"></div>
-  <div class="sheet-pad" id="sheetContent"></div>
-</div>
+<div class="overlay" id="overlay" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet"><div class="sh-handle"></div><div class="sh-pad" id="sheetContent"></div></div>
 
-<!-- FORM -->
 <div class="form-overlay" id="formOverlay">
   <div class="form-card">
-    <div class="form-title"><span id="form-title">New Job</span><button class="fx-btn" onclick="closeForm()">✕</button></div>
-    <div class="fg"><label class="lbl">Client Name *</label><input class="inp" id="f-name" placeholder="Jane Smith"></div>
+    <div class="form-title"><span id="fTitle">New Job</span><button class="fx" onclick="closeForm()">✕</button></div>
+    <div class="fg"><label class="lbl">Client Name *</label><input class="inp" id="fName" placeholder="Jane Smith"></div>
     <div class="fg"><label class="lbl">Trades</label>
       <div class="trade-wrap">
-        <div class="tc on" data-t="Roof" onclick="toggleTrade(this)">🏠 Roof</div>
-        <div class="tc" data-t="Gutters" onclick="toggleTrade(this)">🌊 Gutters</div>
-        <div class="tc" data-t="Siding" onclick="toggleTrade(this)">🪵 Siding</div>
-        <div class="tc" data-t="Concrete" onclick="toggleTrade(this)">🏗 Concrete</div>
-        <div class="tc" data-t="Decking" onclick="toggleTrade(this)">🔩 Decking</div>
-        <div class="tc" data-t="Handyman" onclick="toggleTrade(this)">🔨 Handyman</div>
+        <div class="tc-chip on" data-t="Roof" onclick="this.classList.toggle('on')">🏠 Roof</div>
+        <div class="tc-chip" data-t="Gutters" onclick="this.classList.toggle('on')">🌊 Gutters</div>
+        <div class="tc-chip" data-t="Siding" onclick="this.classList.toggle('on')">🪵 Siding</div>
+        <div class="tc-chip" data-t="Concrete" onclick="this.classList.toggle('on')">🏗 Concrete</div>
+        <div class="tc-chip" data-t="Decking" onclick="this.classList.toggle('on')">🔩 Decking</div>
+        <div class="tc-chip" data-t="Handyman" onclick="this.classList.toggle('on')">🔨 Handyman</div>
       </div>
     </div>
     <div class="fg row">
-      <div class="fg"><label class="lbl">Date</label><input class="inp" id="f-date" type="date"></div>
+      <div class="fg"><label class="lbl">Date</label><input class="inp" id="fDate" type="date"></div>
       <div class="fg"><label class="lbl">Phase</label>
-        <select class="sel" id="f-phase">
+        <select class="sel" id="fPhase">
           <option>Lead</option><option>Inspection</option><option>Filed</option>
           <option>Approved</option><option>In Progress</option><option>Complete</option>
         </select>
       </div>
     </div>
     <div class="fg row">
-      <div class="fg"><label class="lbl">Contract ($)</label><input class="inp" id="f-contract" type="number" placeholder="0"></div>
-      <div class="fg"><label class="lbl">My Payout ($)</label><input class="inp" id="f-payout" type="number" placeholder="0"></div>
+      <div class="fg"><label class="lbl">Contract ($)</label><input class="inp" id="fContract" type="number" placeholder="0"></div>
+      <div class="fg"><label class="lbl">My Payout ($)</label><input class="inp" id="fPayout" type="number" placeholder="0"></div>
     </div>
     <div class="fg row">
-      <div class="fg"><label class="lbl">Carrier</label><input class="inp" id="f-carrier" placeholder="State Farm"></div>
-      <div class="fg"><label class="lbl">Squares</label><input class="inp" id="f-sq" type="number" placeholder="28"></div>
+      <div class="fg"><label class="lbl">Carrier</label><input class="inp" id="fCarrier" placeholder="State Farm"></div>
+      <div class="fg"><label class="lbl">Squares</label><input class="inp" id="fSq" type="number" placeholder="28"></div>
     </div>
-    <div class="fg"><label class="lbl">Notes</label><input class="inp" id="f-notes" placeholder="Storm date, details..."></div>
     <div class="fg"><label class="lbl">Split Deal?</label>
       <div style="display:flex;gap:8px;margin-top:4px;">
-        <div id="split-no" class="tc on" onclick="setSplit(false)">Full Deal</div>
-        <div id="split-yes" class="tc" onclick="setSplit(true)">Split Commission</div>
-      </div>
-      <div id="split-with-wrap" style="display:none;margin-top:8px;">
-        <input class="inp" id="f-splitwith" placeholder="Other rep's name">
+        <div id="splitNo" class="tc-chip on" onclick="setSplit(false)">Full Deal</div>
+        <div id="splitYes" class="tc-chip" onclick="setSplit(true)">Split Commission</div>
       </div>
     </div>
+    <div class="fg" id="splitWithWrap" style="display:none"><label class="lbl">Other Rep's Name</label><input class="inp" id="fSplitWith" placeholder="Rep name"></div>
+    <div class="fg"><label class="lbl">Notes</label><input class="inp" id="fNotes" placeholder="Storm date, details..."></div>
     <div class="form-btns">
-      <button class="fbtn fbtn-gold" onclick="saveJob()">Save</button>
-      <button class="fbtn fbtn-red" id="f-del" onclick="deleteJob()" style="display:none">Delete</button>
-      <button class="fbtn fbtn-dark" onclick="closeForm()">Cancel</button>
+      <button class="fbtn f-gold" onclick="saveJob()">Save</button>
+      <button class="fbtn f-red" id="fDel" onclick="deleteJob()" style="display:none">Delete</button>
+      <button class="fbtn f-dark" onclick="closeForm()">Cancel</button>
     </div>
   </div>
 </div>
@@ -241,52 +229,29 @@ input,select,textarea,button{font-family:var(--font-b);}
 <div id="toast"></div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbwifsHA7co0VvAc9FGtEMUyDbqNw2hFL1C67fonDYOy0AlK0YmFAWtCP0ltCV1dkqc/exec';
-const PHASES = ['Lead','Inspection','Filed','Approved','In Progress','Complete'];
-const PHASE_COLORS = {
-  Lead:'#555c70', Inspection:'#c8922a', Filed:'#4a8ec2',
-  Approved:'#3db87a', 'In Progress':'#e8a020', Complete:'#3db87a'
-};
-const ARCH_PRICE=575, METAL_PRICE=850, ARCH_BUILD=244.96, METAL_BUILD=415;
+const API='https://script.google.com/macros/s/AKfycbwifsHA7co0VvAc9FGtEMUyDbqNw2hFL1C67fonDYOy0AlK0YmFAWtCP0ltCV1dkqc/exec';
+const ARCH=575,METAL=850,ABUILD=244.96,MBUILD=415;
+const PC={Lead:'#555c70',Inspection:'#c8922a',Filed:'#4a8ec2',Approved:'#3db87a','In Progress':'#e8a020',Complete:'#3db87a'};
+const PHASES=['Lead','Inspection','Filed','Approved','In Progress','Complete'];
 
-let jobs=[], curTab='active', editingId=null, detailJobId=null;
+let jobs=[],curTab='active',editId=null,detailId=null,calcSplit=false;
 
-// ── UTILS ─────────────────────────────────────────────────────────────────────
-const fmt = n => '$'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-const fmtS = n => '$'+Number(n||0).toLocaleString('en-US',{maximumFractionDigits:0});
-const fmtK = n => n>=1000?'$'+(n/1000).toFixed(1)+'k':fmtS(n);
-const hs = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-const fmtDate = d => {try{return new Date((d||'')+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}catch(e){return d||'';}}
-const normPhase = p => {
-  const m={'complete':'Complete','in progress':'In Progress','inprogress':'In Progress',
-           'lead':'Lead','inspection':'Inspection','filed':'Filed','approved':'Approved'};
-  return m[(p||'').toLowerCase().trim()]||(p||'Lead');
-};
-const getTypeLabel = t => {
-  if(!t)return'Roof';
-  const parts=[];
-  const tl=t.toLowerCase();
-  if(tl.includes('roof'))parts.push('Roof');
-  if(tl.includes('gutter'))parts.push('Gutters');
-  if(tl.includes('siding'))parts.push('Siding');
-  if(tl.includes('concrete'))parts.push('Concrete');
-  if(tl.includes('deck')||tl.includes('redeck'))parts.push('Decking');
-  if(tl.includes('handyman'))parts.push('Handyman');
-  return parts.length?parts.join(' + '):t;
-};
+const fmt=n=>'$'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtS=n=>'$'+Number(n||0).toLocaleString('en-US',{maximumFractionDigits:0});
+const fmtK=n=>n>=1000?'$'+(n/1000).toFixed(1)+'k':fmtS(n);
+const hs=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const fmtDate=d=>{try{return new Date((d||'')+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'});}catch(e){return d||'';}};
+const normPhase=p=>{const m={'complete':'Complete','in progress':'In Progress','inprogress':'In Progress','lead':'Lead','inspection':'Inspection','filed':'Filed','approved':'Approved'};return m[(p||'').toLowerCase().trim()]||(p||'Lead');};
+const typeLabel=t=>{if(!t)return'Roof';const tl=t.toLowerCase();const p=[];if(tl.includes('roof'))p.push('Roof');if(tl.includes('gutter'))p.push('Gutters');if(tl.includes('siding'))p.push('Siding');if(tl.includes('concrete'))p.push('Concrete');if(tl.includes('deck'))p.push('Decking');if(tl.includes('handyman'))p.push('Handyman');return p.length?p.join(' + '):t;};
 
-// ── DATA ──────────────────────────────────────────────────────────────────────
+// ── DATA ─────────────────────────────────────────────────────────────────────
 async function loadJobs(){
   try{
-    const r = await fetch(API, {
-      method:'POST',
-      body: JSON.stringify({action:'getAll'})
-    });
-    const text = await r.text();
-    const data = JSON.parse(text);
+    const r=await fetch(API,{method:'POST',body:JSON.stringify({action:'getAll'})});
+    const data=await r.json();
     if(data.jobs&&data.jobs.length){
-      jobs = data.jobs.map((j,idx)=>({
-        id:String(j.id||j.ID||'')||String(j.name||j.Name||'no-name').replace(/\s+/g,'-').toLowerCase()+'-'+idx,
+      jobs=data.jobs.map((j,i)=>({
+        id:String(j.id||j.ID||'')||String(j.name||j.Name||'x').toLowerCase().replace(/\s+/g,'-')+'-'+i,
         name:String(j.name||j.Name||''),
         type:String(j.type||j.Type||'Roof'),
         date:String(j.date||j.Date||''),
@@ -294,176 +259,174 @@ async function loadJobs(){
         contract:parseFloat(j.contract||j.Contract)||0,
         payout:parseFloat(j.payout||j.Payout)||0,
         carrier:String(j.carrier||j.Carrier||''),
-        notes:String(j.notes||j.Notes||''),
         squares:parseFloat(j.squares||j.Squares)||0,
-        split:j.split==='true'||j.split===true||j.Split==='true',
+        notes:String(j.notes||j.Notes||''),
+        split:j.split==='true'||j.split===true,
         splitWith:String(j.splitWith||j.SplitWith||''),
       }));
-      localStorage.setItem('tb_v2',JSON.stringify(jobs));
+      localStorage.setItem('tb3',JSON.stringify(jobs));
     } else {
-      const c=localStorage.getItem('tb_v2');
+      const c=localStorage.getItem('tb3');
       if(c)jobs=JSON.parse(c);
     }
-  }catch(e){
-    const c=localStorage.getItem('tb_v2');
-    if(c)jobs=JSON.parse(c);
-  }
+  }catch(e){const c=localStorage.getItem('tb3');if(c)jobs=JSON.parse(c);}
   render();
 }
 
-async function apiCall(action,data){
-  try{await fetch(API,{method:'POST',body:JSON.stringify({action,...data})});}catch(e){}
+async function apiCall(action,data){try{await fetch(API,{method:'POST',body:JSON.stringify({action,...data})});}catch(e){}}
+
+// ── STATS ─────────────────────────────────────────────────────────────────────
+function calcStats(){
+  const done=jobs.filter(j=>j.phase==='Complete');
+  const active=jobs.filter(j=>j.phase!=='Complete');
+  const totalPayout=done.reduce((s,j)=>s+j.payout,0);
+  const totalRevenue=done.reduce((s,j)=>s+j.contract,0);
+  const avgPayout=done.length?totalPayout/done.length:0;
+  const roofDone=done.filter(j=>j.squares>0&&j.payout>0&&!j.split);
+  const totalSq=roofDone.reduce((s,j)=>s+j.squares,0);
+  const avgSq=roofDone.length?totalSq/roofDone.length:0;
+  const avgPerSq=totalSq>0?roofDone.reduce((s,j)=>s+j.payout,0)/totalSq:0;
+  const phaseCounts={};
+  PHASES.forEach(p=>phaseCounts[p]=0);
+  active.forEach(j=>phaseCounts[j.phase]=(phaseCounts[j.phase]||0)+1);
+  return{done,active,totalPayout,totalRevenue,avgPayout,avgSq,avgPerSq,phaseCounts,roofDone};
 }
 
 // ── RENDER ────────────────────────────────────────────────────────────────────
-function switchTab(tab){
+function switchTab(tab,el){
   curTab=tab;
-  document.querySelectorAll('.tab').forEach((t,i)=>{
-    t.classList.toggle('active',['active','trophy','calc'][i]===tab);
-  });
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(el)el.classList.add('active');
   render();
 }
 
 function render(){
-  if(curTab==='active') renderActive();
-  else if(curTab==='trophy') renderTrophy();
+  if(curTab==='active')renderActive();
+  else if(curTab==='trophy')renderTrophy();
   else renderCalc();
 }
 
 function renderActive(){
-  const active = jobs.filter(j=>j.phase!=='Complete');
-  const complete = jobs.filter(j=>j.phase==='Complete');
-  const totalCollected = complete.reduce((s,j)=>s+j.payout,0);
-  const totalContract = active.reduce((s,j)=>s+j.contract,0);
-  const estPayout = active.filter(j=>j.payout>0).reduce((s,j)=>s+j.payout,0);
-  const phaseCounts = {};
-  PHASES.forEach(p=>phaseCounts[p]=0);
-  active.forEach(j=>phaseCounts[j.phase]=(phaseCounts[j.phase]||0)+1);
-  const totalActive = active.length;
+  const s=calcStats();
+  const pipePhases=['Lead','Inspection','Filed','Approved','In Progress'];
+  const pipeTotal=Math.max(1,pipePhases.reduce((t,p)=>t+(s.phaseCounts[p]||0),0));
 
-  // Pipeline bar widths
-  const pipePhases = ['Lead','Inspection','Filed','Approved','In Progress'];
-  const pipeTotal = pipePhases.reduce((s,p)=>s+(phaseCounts[p]||0),0)||1;
-
-  let html = `<div class="summary">
-    <div class="sum-card"><div class="sum-label">Total Collected</div><div class="sum-val green">${fmtK(totalCollected)}</div><div class="sum-sub">from ${complete.length} completed jobs</div></div>
-    <div class="sum-card"><div class="sum-label">Active Jobs</div><div class="sum-val gold">${totalActive}</div><div class="sum-sub">${fmtK(totalContract)} open contract</div></div>
-    <div class="sum-card"><div class="sum-label">Biggest Job</div><div class="sum-val blue">${fmtK(Math.max(0,...complete.map(j=>j.payout)))}</div><div class="sum-sub">best payout collected</div></div>
-    <div class="sum-card"><div class="sum-label">Pending Payout</div><div class="sum-val gold">${fmtK(estPayout)}</div><div class="sum-sub">from active jobs</div></div>
-  </div>`;
-
-  // Pipeline
-  html += `<div class="pipeline"><div class="pipeline-title">Pipeline</div>
+  let html=`<div class="stats-c">
+    <div class="stats-hero">
+      <div class="stats-hero-top">
+        <div class="sh-block"><div class="sh-label">Collected</div><div class="sh-val green">${fmtK(s.totalPayout)}</div></div>
+        <div class="sh-block" style="text-align:right"><div class="sh-label">Total Revenue</div><div class="sh-val gold">${fmtK(s.totalRevenue)}</div></div>
+      </div>
+      <div class="sh-divider"></div>
+      <div class="stats-row">
+        <div class="sr-item"><div class="sr-val">${fmtK(s.avgPayout)}</div><div class="sr-label">Avg Payout</div></div>
+        <div class="sr-item"><div class="sr-val">${s.avgSq>0?Math.round(s.avgSq)+' sq':'—'}</div><div class="sr-label">Avg Squares</div></div>
+        <div class="sr-item"><div class="sr-val">${s.avgPerSq>0?'$'+Math.round(s.avgPerSq)+'/sq':'—'}</div><div class="sr-label">$/Square</div></div>
+        <div class="sr-item"><div class="sr-val" style="color:var(--orange)">${s.active.length}</div><div class="sr-label">Active</div></div>
+      </div>
+    </div>
+    <div class="stats-mini">
+      ${['Lead','Inspection','Filed','Approved','In Progress'].map(p=>`
+        <div class="sm-box">
+          <div class="sm-val" style="color:${PC[p]}">${s.phaseCounts[p]||0}</div>
+          <div class="sm-label">${p==='In Progress'?'Active':p==='Inspection'?'Insp':p}</div>
+        </div>`).join('')}
+    </div>
+  </div>
+  <div class="pipeline-wrap">
     <div class="pipeline-bar">
-      ${pipePhases.map(p=>`<div class="pb-seg" style="flex:${(phaseCounts[p]||0)+0.01};background:${PHASE_COLORS[p]}"></div>`).join('')}
-    </div>
-    <div class="pipeline-legend">
-      ${pipePhases.map(p=>`<div class="pl-item"><div class="pl-dot" style="background:${PHASE_COLORS[p]}"></div>${phaseCounts[p]||0} ${p}</div>`).join('')}
+      ${pipePhases.map(p=>`<div class="pb" style="flex:${(s.phaseCounts[p]||0)+0.01};background:${PC[p]}"></div>`).join('')}
     </div>
   </div>`;
 
-  // Sort: In Progress first, then Approved, Filed, Inspection, Lead
-  const order = {'In Progress':0,'Approved':1,'Filed':2,'Inspection':3,'Lead':4};
-  const sorted = [...active].sort((a,b)=>(order[a.phase]??5)-(order[b.phase]??5));
+  // Group active jobs by phase priority
+  const order={'In Progress':0,'Approved':1,'Filed':2,'Inspection':3,'Lead':4};
+  const sorted=[...s.active].sort((a,b)=>(order[a.phase]??5)-(order[b.phase]??5));
+  const lanes=[...new Set(sorted.map(j=>j.phase))];
 
-  html += `<div class="section-hdr"><div class="section-title">Active Jobs</div><div class="section-count">${totalActive} jobs</div></div>
-  <div class="job-list">`;
+  html+=`<div class="sec-hdr"><div class="sec-title">Active Jobs</div><div class="sec-count">${s.active.length} jobs</div></div>`;
 
   if(!sorted.length){
-    html += `<div class="empty"><div class="empty-icon">🏗</div><div style="color:var(--white);margin-bottom:6px">No active jobs</div><div>Tap + Job to add one</div></div>`;
+    html+=`<div class="empty">No active jobs — tap + Job to add one</div>`;
   } else {
-    sorted.forEach(j=>{
-      const pc = PHASE_COLORS[j.phase]||'#555';
-      const phaseClass = j.phase.toLowerCase().replace(/\s/g,'-');
-      const hasPayout = j.payout>0;
-      html += `<div class="job-card ${phaseClass}" onclick="openDetail('${j.id}')">
-        <div class="jc-main">
-          <div class="jc-info">
-            <div class="jc-name">${hs(j.name)}</div>
-            <div class="jc-meta">${hs(j.carrier||'')}${j.carrier&&j.date?' · ':''}${fmtDate(j.date)}</div>
-            ${j.type&&j.type!=='Roof'?`<div class="jc-trades">${getTypeLabel(j.type)}</div>`:''}
-          </div>
-          <div class="jc-right">
-            ${hasPayout?`<div class="jc-payout">${fmtS(j.payout)}</div>`:`<div class="jc-payout pending">TBD</div>`}
-            <span class="phase-pill" style="background:${pc}22;color:${pc}">${j.phase}</span>
-            ${j.split?`<span style="font-size:8px;font-weight:700;padding:2px 6px;border-radius:6px;background:rgba(74,142,194,0.15);color:#4a8ec2;display:inline-block;margin-top:2px;">SPLIT</span>`:``}
-          </div>
+    lanes.forEach(phase=>{
+      const laneJobs=sorted.filter(j=>j.phase===phase);
+      const pc=PC[phase]||'#555';
+      html+=`<div class="lane-wrap">
+        <div class="lane-label" style="color:${pc}">${phase} · ${laneJobs.length}</div>
+        <div class="lane-scroll">
+          ${laneJobs.map(j=>`
+            <div class="job-card" onclick="openDetail('${j.id}')">
+              <div class="jc-phase-bar" style="background:${pc}"></div>
+              <div class="jc-phase-label" style="color:${pc}">${phase}</div>
+              <div class="jc-name">${hs(j.name)}</div>
+              <div class="jc-carrier">${hs(j.carrier)||'No carrier'}</div>
+              <div class="jc-type">${typeLabel(j.type)}</div>
+              <div class="jc-date">${fmtDate(j.date)}</div>
+              ${j.payout>0?`<div class="jc-payout">${fmtS(j.payout)}</div>`:''}
+              ${j.split?`<div class="jc-split">SPLIT</div>`:''}
+            </div>`).join('')}
         </div>
       </div>`;
     });
   }
-  html += `</div>`;
-  document.getElementById('mainArea').innerHTML = html;
+
+  html+=`<div style="height:20px"></div>`;
+  document.getElementById('main').innerHTML=html;
 }
 
 function renderTrophy(){
-  const complete = jobs.filter(j=>j.phase==='Complete')
-    .sort((a,b)=>b.payout-a.payout);
-  const totalPayout = complete.reduce((s,j)=>s+j.payout,0);
-  const totalContract = complete.reduce((s,j)=>s+j.contract,0);
-  const pct = totalContract>0?((totalPayout/totalContract)*100).toFixed(1):0;
+  const s=calcStats();
+  const done=[...s.done].sort((a,b)=>b.payout-a.payout);
+  const pct=s.totalRevenue>0?((s.totalPayout/s.totalRevenue)*100).toFixed(1):0;
 
-  let html = `<div class="summary">
-    <div class="sum-card wide"><div class="sum-label">Total Collected</div><div class="sum-val green">${fmt(totalPayout)}</div><div class="sum-sub">${fmt(totalContract)} total contract · ${pct}% avg payout rate</div></div>
-  </div>`;
+  let html=`<div class="stats-c">
+    <div class="stats-hero">
+      <div class="stats-hero-top">
+        <div class="sh-block"><div class="sh-label">Total Collected</div><div class="sh-val green">${fmt(s.totalPayout)}</div></div>
+        <div class="sh-block" style="text-align:right"><div class="sh-label">Avg Rate</div><div class="sh-val gold">${pct}%</div></div>
+      </div>
+      <div class="sh-divider"></div>
+      <div class="stats-row">
+        <div class="sr-item"><div class="sr-val">${done.length}</div><div class="sr-label">Jobs Done</div></div>
+        <div class="sr-item"><div class="sr-val">${fmtK(s.totalRevenue)}</div><div class="sr-label">Total Contract</div></div>
+        <div class="sr-item"><div class="sr-val">${fmtK(done.length?Math.max(...done.map(j=>j.payout)):0)}</div><div class="sr-label">Best Job</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="sec-hdr"><div class="sec-title">Completed</div><div class="sec-count">${done.length} jobs</div></div>`;
 
-  if(!complete.length){
-    html += `<div class="empty"><div class="empty-icon">🏆</div><div style="color:var(--white);margin-bottom:6px">No completed jobs yet</div></div>`;
-  } else {
-    html += `<div class="section-hdr"><div class="section-title">Completed</div><div class="section-count">${complete.length} jobs</div></div>
-    <div class="trophy-grid">`;
-    complete.forEach(j=>{
-      const icon = j.type&&j.type.toLowerCase().includes('concrete')?'🏗':j.type&&j.type.toLowerCase().includes('handyman')?'🔨':'🏠';
-      html += `<div class="trophy-card" onclick="openDetail('${j.id}')">
+  if(!done.length){html+=`<div class="empty">No completed jobs yet</div>`;}
+  else{
+    html+=`<div class="trophy-grid">`;
+    done.forEach(j=>{
+      const icon=j.type&&j.type.toLowerCase().includes('concrete')?'🏗':j.type&&j.type.toLowerCase().includes('handyman')?'🔨':'🏠';
+      const pct2=j.contract>0?((j.payout/j.contract)*100).toFixed(1)+'%':'—';
+      html+=`<div class="tc" onclick="openDetail('${j.id}')">
         <div class="tc-icon">${icon}</div>
         <div class="tc-name">${hs(j.name)}</div>
         <div class="tc-payout">${fmtS(j.payout)}</div>
-        <div class="tc-date">${fmtDate(j.date)}</div>
-        <div class="tc-type">${getTypeLabel(j.type)}</div>
+        <div class="tc-sub">${fmtS(j.contract)} · ${pct2}${j.split?' · SPLIT':''}</div>
+        <div class="tc-sub">${fmtDate(j.date)}</div>
       </div>`;
     });
-    html += `</div>`;
+    html+=`</div>`;
   }
-  document.getElementById('mainArea').innerHTML = html;
-}
-
-function getAvgPayoutPerSq(){
-  // Get completed roof jobs with both squares and payout
-  const roofJobs = jobs.filter(j=>
-    j.phase==='Complete' &&
-    j.squares>0 && j.payout>0 &&
-    !j.split && // exclude split deals for true avg
-    (j.type||'').toLowerCase().includes('roof')
-  );
-  if(!roofJobs.length) return null;
-  const totalPayout = roofJobs.reduce((s,j)=>s+j.payout,0);
-  const totalSq = roofJobs.reduce((s,j)=>s+j.squares,0);
-  return {
-    avgPerSq: totalPayout/totalSq,
-    jobCount: roofJobs.length,
-    totalPayout,
-    totalSq,
-    jobs: roofJobs
-  };
+  document.getElementById('main').innerHTML=html;
 }
 
 function renderCalc(){
-  const avgData = getAvgPayoutPerSq();
-  const completedRoof = jobs.filter(j=>j.phase==='Complete'&&(j.type||'').toLowerCase().includes('roof')&&j.payout>0);
-  const totalCollected = completedRoof.reduce((s,j)=>s+j.payout,0);
-  const totalSq = completedRoof.reduce((s,j)=>s+j.squares,0);
+  const s=calcStats();
+  const avgData=s.roofDone.length>0?{avgPerSq:s.avgPerSq,count:s.roofDone.length}:null;
 
-  document.getElementById('mainArea').innerHTML = `
-  <div class="calc-wrap">
+  let html=`<div class="calc-wrap">
     <div class="calc-card">
-      <div class="calc-title">Job Income Projector</div>
-      ${avgData?`<div style="background:var(--gold-bg);border:1px solid rgba(200,146,42,0.25);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:11px;color:var(--gold);">
-        📊 Based on your <strong>${avgData.jobCount} completed roof jobs</strong> — your avg payout is <strong>${fmt(avgData.avgPerSq)}/sq</strong>
-      </div>`:`<div style="background:var(--card2);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:11px;color:var(--dim);">Add completed jobs with square counts to see your personal avg payout/sq</div>`}
+      <div class="calc-title">Income Projector</div>
+      ${avgData?`<div class="avg-banner">📊 Your avg: <strong>$${Math.round(avgData.avgPerSq)}/sq</strong> from ${avgData.count} completed jobs — used for your personal projection below</div>`:''}
       <div class="fg row">
-        <div class="fg"><label class="lbl">Square Count *</label><input class="inp" id="c-sq" type="number" placeholder="28" oninput="calcResult()"></div>
+        <div class="fg"><label class="lbl">Square Count *</label><input class="inp" id="cSq" type="number" placeholder="28" oninput="calcResult()"></div>
         <div class="fg"><label class="lbl">Shingle Type</label>
-          <select class="sel" id="c-type" onchange="calcResult()">
+          <select class="sel" id="cType" onchange="calcResult()">
             <option value="arch">Architectural</option>
             <option value="metal">Metal</option>
           </select>
@@ -471,231 +434,202 @@ function renderCalc(){
       </div>
       <div class="fg row">
         <div class="fg"><label class="lbl">Lead Source</label>
-          <select class="sel" id="c-lead" onchange="calcResult()">
-            <option value="company">Company Lead (15% O&P)</option>
-            <option value="selfgen">Self-Gen (5% O&P)</option>
+          <select class="sel" id="cLead" onchange="calcResult()">
+            <option value="co">Company Lead (15%)</option>
+            <option value="sg">Self-Gen (5%)</option>
           </select>
         </div>
         <div class="fg"><label class="lbl">Actual Contract ($)</label>
-          <input class="inp" id="c-contract" type="number" placeholder="Optional override" oninput="calcResult()">
+          <input class="inp" id="cContract" type="number" placeholder="Optional" oninput="calcResult()">
         </div>
       </div>
       <div class="fg"><label class="lbl">Deal Type</label>
         <div style="display:flex;gap:8px;margin-top:4px;">
-          <div id="cc-full" class="tc on" onclick="setCCalcSplit(false)">Full Deal</div>
-          <div id="cc-split" class="tc" onclick="setCCalcSplit(true)">Split Deal</div>
+          <div id="ccFull" class="tc-chip on" onclick="setCalcSplit(false)">Full Deal</div>
+          <div id="ccSplit" class="tc-chip" onclick="setCalcSplit(true)">Split</div>
         </div>
       </div>
-      <div id="calc-output"></div>
+      <div id="calcOut"></div>
     </div>
-    ${completedRoof.length?`<div class="calc-card">
-      <div class="calc-title">Your Track Record</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
-        <div style="background:var(--card2);border-radius:8px;padding:10px;text-align:center;">
-          <div style="font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:4px;">Jobs Done</div>
-          <div style="font-family:var(--font-d);font-size:22px;font-weight:900;color:var(--white);">${completedRoof.length}</div>
-        </div>
-        <div style="background:var(--card2);border-radius:8px;padding:10px;text-align:center;">
-          <div style="font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:4px;">Total Sq</div>
-          <div style="font-family:var(--font-d);font-size:22px;font-weight:900;color:var(--gold);">${totalSq||'—'}</div>
-        </div>
-        <div style="background:var(--card2);border-radius:8px;padding:10px;text-align:center;">
-          <div style="font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:4px;">Collected</div>
-          <div style="font-family:var(--font-d);font-size:20px;font-weight:900;color:var(--green);">${fmtK(totalCollected)}</div>
-        </div>
+    <div class="calc-card">
+      <div class="calc-title">Your Track Record</div>`;
+
+  if(!s.done.length){html+=`<div class="empty">Add completed jobs to see your track record</div>`;}
+  else{
+    html+=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+      <div style="background:var(--card2);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-family:var(--font-d);font-size:22px;font-weight:900;color:var(--white);">${s.done.length}</div>
+        <div style="font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-top:2px;">Jobs</div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:6px;">
-        ${completedRoof.sort((a,b)=>b.payout-a.payout).slice(0,6).map(j=>{
-          const pps = j.squares>0?(j.payout/j.squares).toFixed(0):0;
-          const pct = j.contract>0?((j.payout/j.contract)*100).toFixed(1):0;
-          return `<div style="background:var(--card2);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;">
-            <div>
-              <div style="font-size:12px;font-weight:600;color:var(--white);">${hs(j.name)}</div>
-              <div style="font-size:10px;color:var(--dim);">${j.squares?j.squares+' sq · ':''}${fmtS(j.contract)} contract${j.split?' · SPLIT':''}</div>
-            </div>
-            <div style="text-align:right;">
-              <div style="font-size:15px;font-weight:700;color:var(--green);">${fmtS(j.payout)}</div>
-              ${pct>0?`<div style="font-size:9px;color:var(--dim);">${pct}%</div>`:''}
-            </div>
-          </div>`;
-        }).join('')}
+      <div style="background:var(--card2);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-family:var(--font-d);font-size:22px;font-weight:900;color:var(--gold);">${s.avgSq>0?Math.round(s.avgSq):'—'}</div>
+        <div style="font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-top:2px;">Avg Sq</div>
       </div>
-    </div>`:''}
-  </div>`;
+      <div style="background:var(--card2);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-family:var(--font-d);font-size:22px;font-weight:900;color:var(--green);">${fmtK(s.totalPayout)}</div>
+        <div style="font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-top:2px;">Collected</div>
+      </div>
+    </div>`;
+    [...s.done].sort((a,b)=>b.payout-a.payout).slice(0,6).forEach(j=>{
+      const pct=j.contract>0?((j.payout/j.contract)*100).toFixed(1):0;
+      html+=`<div class="tr-row">
+        <div><div class="tr-name">${hs(j.name)}</div>
+        <div class="tr-sub">${j.squares?j.squares+' sq · ':''}${fmtS(j.contract)} contract${j.split?' · SPLIT':''}</div></div>
+        <div style="text-align:right"><div class="tr-pay">${fmtS(j.payout)}</div>${pct>0?`<div class="tr-pct">${pct}%</div>`:''}</div>
+      </div>`;
+    });
+  }
+  html+=`</div></div>`;
+  document.getElementById('main').innerHTML=html;
 }
 
-let calcSplit = false;
-function setCCalcSplit(isSplit){
-  calcSplit=isSplit;
-  document.getElementById('cc-full')?.classList.toggle('on',!isSplit);
-  document.getElementById('cc-split')?.classList.toggle('on',isSplit);
+function setCalcSplit(v){
+  calcSplit=v;
+  document.getElementById('ccFull')?.classList.toggle('on',!v);
+  document.getElementById('ccSplit')?.classList.toggle('on',v);
   calcResult();
 }
 
 function calcResult(){
-  const sq = parseFloat(document.getElementById('c-sq')?.value)||0;
-  const type = document.getElementById('c-type')?.value||'arch';
-  const lead = document.getElementById('c-lead')?.value||'company';
-  const actualContract = parseFloat(document.getElementById('c-contract')?.value)||0;
-  const out = document.getElementById('calc-output');
-  if(!out)return;
-  if(!sq){out.innerHTML='';return;}
+  const sq=parseFloat(document.getElementById('cSq')?.value)||0;
+  const type=document.getElementById('cType')?.value||'arch';
+  const lead=document.getElementById('cLead')?.value||'co';
+  const actual=parseFloat(document.getElementById('cContract')?.value)||0;
+  const out=document.getElementById('calcOut');
+  if(!out||!sq){if(out)out.innerHTML='';return;}
+  const ppsq=type==='metal'?METAL:ARCH;
+  const bpsq=type==='metal'?MBUILD:ABUILD;
+  const suggested=sq*ppsq;
+  const contract=actual>0?actual:suggested;
+  const build=sq*bpsq;
+  const op=(lead==='sg'?0.05:0.15)*contract;
+  const gross=contract-build-op;
+  const payout=gross*0.5*(calcSplit?0.5:1);
+  const pct=contract>0?((payout/contract)*100):0;
+  const pClass=pct>=20?'g':pct>=12?'o':'red';
+  const s=calcStats();
+  const avgPayout=s.avgPerSq>0?s.avgPerSq*sq*(calcSplit?0.5:1):null;
 
-  const pricePerSq = type==='metal'?METAL_PRICE:ARCH_PRICE;
-  const buildPerSq = type==='metal'?METAL_BUILD:ARCH_BUILD;
-  const suggestedContract = sq * pricePerSq;
-  const contract = actualContract>0?actualContract:suggestedContract;
-  const build = sq * buildPerSq;
-  const op = lead==='selfgen'?0.05:0.15;
-  const opAmt = contract * op;
-  const gross = contract - build - opAmt;
-  const formulaPayout = gross * 0.5 * (calcSplit?0.5:1);
-  const pct = contract>0?((formulaPayout/contract)*100):0;
-  const pctClass = pct>=20?'pct-good':pct>=12?'pct-ok':'pct-bad';
-
-  // Your personal avg projection
-  const avgData = getAvgPayoutPerSq();
-  const avgPayout = avgData ? avgData.avgPerSq * sq * (calcSplit?0.5:1) : null;
-
-  out.innerHTML = `
-    <div class="calc-result">
-      <div class="cr-row"><span class="cr-label">Suggested Contract (${sq} sq × $${pricePerSq}/sq)</span><span class="cr-val gold">${fmt(suggestedContract)}</span></div>
-      ${actualContract>0?`<div class="cr-row"><span class="cr-label">Using Actual Contract</span><span class="cr-val">${fmt(contract)}</span></div>`:''}
-      <div class="cr-row"><span class="cr-label">Build Cost (${sq} sq × $${buildPerSq}/sq)</span><span class="cr-val red">−${fmt(build)}</span></div>
-      <div class="cr-row"><span class="cr-label">O&P (${(op*100).toFixed(0)}%)</span><span class="cr-val red">−${fmt(opAmt)}</span></div>
-      <div class="cr-row"><span class="cr-label">Gross Margin</span><span class="cr-val">${fmt(gross)}</span></div>
-      ${calcSplit?`<div class="cr-row"><span class="cr-label">Split (÷2)</span><span class="cr-val" style="color:#4a8ec2">50% to you</span></div>`:''}
-      <div class="cr-row" style="border-top:1px solid rgba(61,184,122,0.3);margin-top:6px;padding-top:10px;">
-        <span class="cr-label" style="font-weight:700;color:var(--white)">FORMULA PAYOUT</span>
-        <span class="cr-val big">${fmt(formulaPayout)}</span>
+  out.innerHTML=`<div class="calc-result">
+    <div class="cr-row"><span class="cr-label">Suggested (${sq}sq × $${ppsq})</span><span class="cr-val gold">${fmt(suggested)}</span></div>
+    ${actual>0?`<div class="cr-row"><span class="cr-label">Actual contract</span><span class="cr-val">${fmt(contract)}</span></div>`:''}
+    <div class="cr-row"><span class="cr-label">Build (${sq}sq × $${bpsq})</span><span class="cr-val red">−${fmt(build)}</span></div>
+    <div class="cr-row"><span class="cr-label">O&P (${lead==='sg'?5:15}%)</span><span class="cr-val red">−${fmt(op)}</span></div>
+    ${calcSplit?`<div class="cr-row"><span class="cr-label">Split ÷2</span><span class="cr-val" style="color:var(--blue)">50% to you</span></div>`:''}
+    <div class="cr-row" style="border-top:1px solid rgba(61,184,122,0.25);margin-top:6px;padding-top:10px;">
+      <span class="cr-label" style="color:var(--white);font-weight:700">Formula Payout</span>
+      <span class="cr-val big">${fmt(payout)}</span>
+    </div>
+    <div class="cr-row"><span class="cr-label">Payout %</span><span class="cr-val ${pClass}">${pct.toFixed(1)}%</span></div>
+    ${avgPayout?`
+    <div style="border-top:1px solid rgba(200,146,42,0.2);margin-top:10px;padding-top:10px;">
+      <div class="cr-row">
+        <span class="cr-label" style="color:var(--gold);font-weight:700">Your Avg Projection</span>
+        <span class="cr-val" style="font-family:var(--font-d);font-size:24px;font-weight:900;color:var(--gold)">${fmt(avgPayout)}</span>
       </div>
-      <div class="cr-row"><span class="cr-label">Payout %</span><span class="cr-val ${pctClass}">${pct.toFixed(1)}%</span></div>
-      ${avgPayout?`
-      <div style="border-top:1px solid rgba(200,146,42,0.2);margin-top:10px;padding-top:10px;">
-        <div class="cr-row">
-          <span class="cr-label" style="color:var(--gold);font-weight:700;">YOUR AVG PROJECTION</span>
-          <span class="cr-val" style="font-family:var(--font-d);font-size:22px;font-weight:900;color:var(--gold);">${fmt(avgPayout)}</span>
-        </div>
-        <div class="cr-row"><span class="cr-label" style="font-size:9px;">Based on your ${avgData.jobCount} completed jobs at ${fmt(avgData.avgPerSq)}/sq avg</span><span></span></div>
-        ${Math.abs(avgPayout-formulaPayout)>100?`<div class="cr-row"><span class="cr-label" style="font-size:9px;">Difference from formula</span><span class="cr-val" style="font-size:12px;color:${avgPayout>formulaPayout?'var(--green)':'var(--red)'};">${avgPayout>formulaPayout?'+':''}${fmt(avgPayout-formulaPayout)}</span></div>`:''}
-      </div>`:''}
-    </div>`;
+      <div class="cr-row"><span class="cr-label" style="font-size:9px">$${Math.round(s.avgPerSq)}/sq × ${sq}sq from your ${s.roofDone.length} jobs</span>
+      <span class="cr-val" style="font-size:11px;color:${avgPayout>=payout?'var(--green)':'var(--red)'}">${avgPayout>=payout?'+':''}${fmt(avgPayout-payout)}</span></div>
+    </div>`:''}
+  </div>`;
 }
 
 // ── DETAIL SHEET ──────────────────────────────────────────────────────────────
 function openDetail(id){
-  detailJobId=id;
+  detailId=id;
   const j=jobs.find(x=>x.id===id);if(!j)return;
-  const pc=PHASE_COLORS[j.phase]||'#555';
-  const contract=j.contract||0,payout=j.payout||0;
-  const pct=contract>0?((payout/contract)*100).toFixed(1):0;
-  const pctColor=parseFloat(pct)>=20?'var(--green)':parseFloat(pct)>=12?'var(--gold)':'var(--dim)';
-
-  document.getElementById('sheetContent').innerHTML = `
-    <span class="sheet-phase" style="background:${pc}22;color:${pc}">${j.phase}</span>
-    <div class="sheet-name">${hs(j.name)}</div>
-    <div class="sheet-sub">${getTypeLabel(j.type)}${j.carrier?' · '+hs(j.carrier):''}${j.date?' · '+fmtDate(j.date):''}</div>
+  const pc=PC[j.phase]||'#555';
+  const pct=j.contract>0?((j.payout/j.contract)*100).toFixed(1):0;
+  const pClass=parseFloat(pct)>=20?'var(--green)':parseFloat(pct)>=12?'var(--gold)':'var(--dim)';
+  document.getElementById('sheetContent').innerHTML=`
+    <span class="sh-phase" style="background:${pc}22;color:${pc}">${j.phase}</span>
+    <div class="sh-name">${hs(j.name)}</div>
+    <div class="sh-sub">${typeLabel(j.type)}${j.carrier?' · '+hs(j.carrier):''}${j.date?' · '+fmtDate(j.date):''}</div>
     <div class="detail-grid">
-      <div class="detail-stat"><div class="ds-label">Contract</div><div class="ds-val">${contract>0?fmt(contract):'—'}</div></div>
-      <div class="detail-stat"><div class="ds-label">My Payout</div><div class="ds-val" style="color:var(--green)">${payout>0?fmt(payout):'Pending'}</div></div>
-      <div class="detail-stat"><div class="ds-label">Revenue %</div><div class="ds-val" style="color:${pctColor}">${pct>0?pct+'%':'—'}</div></div>
-      <div class="detail-stat"><div class="ds-label">Squares</div><div class="ds-val">${j.squares||'—'}</div></div>
-      ${j.split?`<div class="detail-stat" style="grid-column:1/-1;background:rgba(74,142,194,0.08);border:1px solid rgba(74,142,194,0.2)"><div class="ds-label" style="color:#4a8ec2">Split Deal</div><div class="ds-val" style="font-size:14px;color:#4a8ec2">${j.splitWith?'With '+hs(j.splitWith):'Commission split'}</div></div>`:''}
+      <div class="ds"><div class="ds-l">Contract</div><div class="ds-v">${j.contract>0?fmt(j.contract):'—'}</div></div>
+      <div class="ds"><div class="ds-l">My Payout</div><div class="ds-v" style="color:var(--green)">${j.payout>0?fmt(j.payout):'Pending'}</div></div>
+      <div class="ds"><div class="ds-l">Revenue %</div><div class="ds-v" style="color:${pClass}">${pct>0?pct+'%':'—'}</div></div>
+      <div class="ds"><div class="ds-l">Squares</div><div class="ds-v">${j.squares||'—'}</div></div>
+      ${j.split?`<div class="ds" style="grid-column:1/-1;background:rgba(74,142,194,0.08);border:1px solid rgba(74,142,194,0.2)"><div class="ds-l" style="color:var(--blue)">Split Deal</div><div class="ds-v" style="font-size:14px;color:var(--blue)">${j.splitWith?'With '+hs(j.splitWith):'Commission split'}</div></div>`:''}
     </div>
-    ${j.notes?`<div class="sheet-notes">${hs(j.notes)}</div>`:''}
-    <div class="sheet-btns">
-      <button class="sbtn sbtn-gold" onclick="openFormFromDetail()">Edit</button>
-      <button class="sbtn sbtn-dark" onclick="closeSheet()">Close</button>
+    ${j.notes?`<div class="sh-notes">${hs(j.notes)}</div>`:''}
+    <div class="sh-btns">
+      <button class="sbtn s-gold" onclick="openEditFromSheet()">Edit</button>
+      <button class="sbtn s-dark" onclick="closeSheet()">Close</button>
     </div>`;
-
-  document.getElementById('sheetOverlay').classList.add('show');
-  setTimeout(()=>document.getElementById('detailSheet').classList.add('show'),10);
+  document.getElementById('overlay').classList.add('show');
+  setTimeout(()=>document.getElementById('sheet').classList.add('show'),10);
 }
 
-function closeSheet(){
-  document.getElementById('detailSheet').classList.remove('show');
-  document.getElementById('sheetOverlay').classList.remove('show');
-}
-
-function openFormFromDetail(){
-  closeSheet();
-  setTimeout(()=>openForm(detailJobId),360);
-}
+function closeSheet(){document.getElementById('sheet').classList.remove('show');document.getElementById('overlay').classList.remove('show');}
+function openEditFromSheet(){closeSheet();setTimeout(()=>openForm(detailId),360);}
 
 // ── FORM ──────────────────────────────────────────────────────────────────────
-function toggleTrade(el){el.classList.toggle('on');}
-function setSplit(isSplit){
-  document.getElementById('split-no').classList.toggle('on',!isSplit);
-  document.getElementById('split-yes').classList.toggle('on',isSplit);
-  document.getElementById('split-with-wrap').style.display=isSplit?'block':'none';
-}
-function getSelectedTrades(){return Array.from(document.querySelectorAll('.tc.on')).map(e=>e.dataset.t).join(', ')||'Roof';}
-function setTradeChips(type){
-  document.querySelectorAll('.tc').forEach(el=>{
-    const t=el.dataset.t.toLowerCase();
-    el.classList.toggle('on',(type||'roof').toLowerCase().includes(t));
-  });
+function setSplit(v){
+  editId&&(document.getElementById('splitNo').classList.toggle('on',!v));
+  document.getElementById('splitNo').classList.toggle('on',!v);
+  document.getElementById('splitYes').classList.toggle('on',v);
+  document.getElementById('splitWithWrap').style.display=v?'block':'none';
 }
 
 function openForm(id){
-  editingId=id;
+  editId=id;
   const j=id?jobs.find(x=>x.id===id):null;
-  document.getElementById('form-title').textContent=j?'Edit Job':'New Job';
-  document.getElementById('f-name').value=j?.name||'';
-  document.getElementById('f-date').value=j?.date||new Date().toISOString().split('T')[0];
-  document.getElementById('f-phase').value=j?.phase||'Lead';
-  document.getElementById('f-contract').value=j?.contract||'';
-  document.getElementById('f-payout').value=j?.payout||'';
-  document.getElementById('f-carrier').value=j?.carrier||'';
-  document.getElementById('f-sq').value=j?.squares||'';
-  document.getElementById('f-notes').value=j?.notes||'';
-  document.getElementById('f-del').style.display=j?'block':'none';
-  setSplit(j?.split===true||j?.split==='true');
-  document.getElementById('f-splitwith').value=j?.splitWith||'';
-  setTradeChips(j?.type||'Roof');
+  document.getElementById('fTitle').textContent=j?'Edit Job':'New Job';
+  document.getElementById('fName').value=j?.name||'';
+  document.getElementById('fDate').value=j?.date||new Date().toISOString().split('T')[0];
+  document.getElementById('fPhase').value=j?.phase||'Lead';
+  document.getElementById('fContract').value=j?.contract||'';
+  document.getElementById('fPayout').value=j?.payout||'';
+  document.getElementById('fCarrier').value=j?.carrier||'';
+  document.getElementById('fSq').value=j?.squares||'';
+  document.getElementById('fNotes').value=j?.notes||'';
+  document.getElementById('fSplitWith').value=j?.splitWith||'';
+  document.getElementById('fDel').style.display=j?'block':'none';
+  setSplit(j?.split||false);
+  // Set trade chips
+  const type=j?.type||'Roof';
+  document.querySelectorAll('.tc-chip[data-t]').forEach(el=>{
+    el.classList.toggle('on',type.toLowerCase().includes(el.dataset.t.toLowerCase()));
+  });
   document.getElementById('formOverlay').classList.add('show');
-  setTimeout(()=>document.getElementById('f-name').focus(),300);
 }
 
 function closeForm(){document.getElementById('formOverlay').classList.remove('show');}
 
 async function saveJob(){
-  const name=document.getElementById('f-name').value.trim();
+  const name=document.getElementById('fName').value.trim();
   if(!name){showToast('Enter a name');return;}
-  const isSplit=document.getElementById('split-yes').classList.contains('on');
+  const trades=Array.from(document.querySelectorAll('.tc-chip[data-t].on')).map(e=>e.dataset.t).join(', ')||'Roof';
+  const isSplit=document.getElementById('splitYes').classList.contains('on');
   const job={
-    id:editingId||Date.now().toString(),
-    name,
-    type:getSelectedTrades(),
-    date:document.getElementById('f-date').value,
-    phase:document.getElementById('f-phase').value,
-    contract:parseFloat(document.getElementById('f-contract').value)||0,
-    payout:parseFloat(document.getElementById('f-payout').value)||0,
-    carrier:document.getElementById('f-carrier').value,
-    squares:parseFloat(document.getElementById('f-sq').value)||0,
-    notes:document.getElementById('f-notes').value,
-    split:document.getElementById('split-yes').classList.contains('on'),
-    splitWith:document.getElementById('f-splitwith').value||'',
+    id:editId||Date.now().toString(),name,type:trades,
+    date:document.getElementById('fDate').value,
+    phase:document.getElementById('fPhase').value,
+    contract:parseFloat(document.getElementById('fContract').value)||0,
+    payout:parseFloat(document.getElementById('fPayout').value)||0,
+    carrier:document.getElementById('fCarrier').value,
+    squares:parseFloat(document.getElementById('fSq').value)||0,
+    notes:document.getElementById('fNotes').value,
+    split:isSplit,
+    splitWith:document.getElementById('fSplitWith').value||'',
   };
-  if(editingId){const i=jobs.findIndex(j=>j.id===editingId);if(i>=0)jobs[i]=job;}
+  if(editId){const i=jobs.findIndex(j=>j.id===editId);if(i>=0)jobs[i]=job;}
   else jobs.unshift(job);
-  localStorage.setItem('tb_v2',JSON.stringify(jobs));
-  closeForm();render();showToast(editingId?'Job updated ✓':'Job added ✓');
+  localStorage.setItem('tb3',JSON.stringify(jobs));
+  closeForm();render();showToast(editId?'Updated ✓':'Job added ✓');
   apiCall('save',job);
 }
 
 async function deleteJob(){
-  if(!editingId||!confirm('Delete this job?'))return;
-  jobs=jobs.filter(j=>j.id!==editingId);
-  localStorage.setItem('tb_v2',JSON.stringify(jobs));
+  if(!editId||!confirm('Delete this job?'))return;
+  const id=editId;
+  jobs=jobs.filter(j=>j.id!==id);
+  localStorage.setItem('tb3',JSON.stringify(jobs));
   closeForm();render();showToast('Deleted');
-  apiCall('delete',{id:editingId});
+  apiCall('delete',{id});
 }
 
-function showToast(msg){
-  const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
-  setTimeout(()=>el.classList.remove('show'),2500);
-}
+function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500);}
 
 loadJobs();
 </script>
