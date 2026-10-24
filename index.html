@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Torres Builds</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Barlow+Condensed:wght@700;800;900&display=swap');
+:root{
+  --black:#07080a;--surface:#0f1014;--card:#14161b;--card2:#1a1d24;
+  --border:#22252e;--dim:#555c70;--text:#9da3b4;--white:#eef0f5;
+  --gold:#c8922a;--gold-bg:rgba(200,146,42,0.1);
+  --green:#3db87a;--green-bg:rgba(61,184,122,0.1);
+  --red:#e05c5c;--blue:#4a8ec2;--sky:#87CEEB;
+  --font-d:'Barlow Condensed',sans-serif;--font-b:'Inter',sans-serif;
+  --safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--black);color:var(--text);font-family:var(--font-b);overflow-x:hidden;}
+input,select,textarea,button{font-family:var(--font-b);}
+
+/* HEADER */
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;padding-top:calc(12px + var(--safe-top));display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.brand{font-family:var(--font-d);font-size:22px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:var(--white);}
+.brand em{color:var(--gold);font-style:normal;}
+.add-btn{background:var(--gold);border:none;color:#000;font-family:var(--font-d);font-size:15px;font-weight:900;text-transform:uppercase;letter-spacing:1px;padding:8px 16px;border-radius:8px;cursor:pointer;}
+
+/* STATS BAR */
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 14px;background:var(--surface);border-bottom:1px solid var(--border);}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 8px;text-align:center;}
+.stat-label{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:4px;}
+.stat-val{font-family:var(--font-d);font-size:20px;font-weight:900;line-height:1;}
+
+/* SCENE */
+.scene-wrap{position:relative;background:linear-gradient(180deg,#87CEEB 0%,#b8d9f0 50%,#5a8a5a 100%);height:220px;overflow:hidden;flex-shrink:0;}
+.scene-wrap canvas{position:absolute;inset:0;width:100%;height:100%;}
+.scene-tap-hint{position:absolute;bottom:8px;right:10px;font-size:10px;color:rgba(255,255,255,0.6);pointer-events:none;}
+
+/* SECTIONS */
+.page{padding:14px;padding-bottom:calc(20px + var(--safe-bot));}
+.section-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+
+/* JOB CARDS */
+.jobs-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.job-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:12px;}
+.job-card:active{opacity:0.8;transform:scale(0.99);}
+.job-card.active-job{border-color:rgba(200,146,42,0.4);background:var(--gold-bg);}
+.job-card.complete-job{border-color:rgba(61,184,122,0.3);background:var(--green-bg);}
+.job-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.job-info{flex:1;min-width:0;}
+.job-name{font-family:var(--font-d);font-size:17px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.job-meta{font-size:11px;color:var(--dim);margin-top:2px;}
+.job-right{text-align:right;flex-shrink:0;}
+.job-payout{font-family:var(--font-d);font-size:18px;font-weight:800;color:var(--green);}
+.job-phase{font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;margin-top:3px;display:inline-block;}
+
+/* TROPHY CASE */
+.trophy-scroll{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none;}
+.trophy-scroll::-webkit-scrollbar{display:none;}
+.trophy-card{flex-shrink:0;width:160px;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:all 0.15s;}
+.trophy-card:active{transform:scale(0.97);}
+.trophy-img{height:90px;display:flex;align-items:center;justify-content:center;font-size:44px;background:linear-gradient(135deg,#1a2a1a,#0f1a0f);}
+.trophy-body{padding:10px;}
+.trophy-name{font-family:var(--font-d);font-size:15px;font-weight:800;text-transform:uppercase;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.trophy-payout{font-size:16px;font-weight:700;color:var(--green);margin-top:2px;}
+.trophy-date{font-size:10px;color:var(--dim);margin-top:2px;}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:200;display:none;align-items:flex-end;justify-content:center;padding:0;}
+.overlay.show{display:flex;}
+.modal{background:var(--card);border-radius:20px 20px 0 0;width:100%;max-width:500px;padding:24px 20px;padding-bottom:calc(24px + var(--safe-bot));max-height:90vh;overflow-y:auto;}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;}
+.modal-title{font-family:var(--font-d);font-size:22px;font-weight:900;text-transform:uppercase;color:var(--white);margin-bottom:4px;}
+.modal-sub{font-size:12px;color:var(--dim);margin-bottom:18px;}
+.modal-stat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+.modal-stat{background:var(--card2);border-radius:8px;padding:10px 12px;}
+.modal-stat .ml{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:3px;}
+.modal-stat .mv{font-size:18px;font-weight:700;color:var(--white);}
+.phase-track{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:18px;}
+.phase-dot{flex:1;min-width:40px;height:4px;background:var(--border);border-radius:2px;}
+.phase-dot.done{background:var(--gold);}
+.phase-dot.current{background:var(--green);}
+.phase-names{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px;}
+.phase-name{flex:1;min-width:40px;font-size:8px;text-align:center;color:var(--dim);}
+.phase-name.active{color:var(--gold);font-weight:700;}
+
+/* FORM */
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;}
+.fg.row{flex-direction:row;gap:8px;}
+.fg.row .fg{flex:1;margin-bottom:0;}
+.lbl{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);font-weight:600;}
+.inp{background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--white);font-size:14px;padding:10px 12px;outline:none;width:100%;}
+.inp:focus{border-color:var(--gold);}
+.sel{background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--white);font-size:14px;padding:10px 12px;outline:none;width:100%;-webkit-appearance:none;}
+.btn-row{display:flex;gap:8px;margin-top:8px;}
+.btn{flex:1;border:none;border-radius:8px;font-size:14px;font-weight:700;padding:12px;cursor:pointer;text-transform:uppercase;letter-spacing:0.5px;}
+.btn-gold{background:var(--gold);color:#000;}
+.btn-cancel{background:var(--card2);border:1px solid var(--border);color:var(--text);}
+.btn-red{background:none;border:1px solid var(--red);color:var(--red);}
+
+/* TOAST */
+#toast{position:fixed;bottom:calc(24px + var(--safe-bot));left:50%;transform:translateX(-50%);background:var(--green);color:#000;font-size:12px;font-weight:700;padding:8px 18px;border-radius:20px;opacity:0;transition:opacity 0.3s;z-index:999;white-space:nowrap;pointer-events:none;}
+#toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="brand">Torres <em>Builds</em></div>
+  <button class="add-btn" onclick="openAdd()">+ Job</button>
+</div>
+
+<div class="stats-bar" id="statsBar"></div>
+
+<div class="scene-wrap">
+  <canvas id="scene"></canvas>
+  <div class="scene-tap-hint">tap Chris 👆</div>
+</div>
+
+<div class="page">
+  <div class="section-label">Active Jobs</div>
+  <div class="jobs-list" id="activeJobs"></div>
+  <div class="section-label">Trophy Case</div>
+  <div class="trophy-scroll" id="trophyCase"></div>
+</div>
+
+<!-- JOB DETAIL MODAL -->
+<div class="overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="dm-name"></div>
+    <div class="modal-sub" id="dm-sub"></div>
+    <div class="phase-track" id="dm-track"></div>
+    <div class="phase-names" id="dm-phases"></div>
+    <div class="modal-stat-row" id="dm-stats"></div>
+    <div class="btn-row">
+      <button class="btn btn-gold" onclick="openEdit(currentDetailId)">Edit Job</button>
+      <button class="btn btn-cancel" onclick="closeModal('detailModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="overlay" id="formModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="fm-title">New Job</div>
+    <div style="margin-bottom:16px;">
+      <div class="fg row">
+        <div class="fg"><label class="lbl">Client Name *</label><input class="inp" id="f-name" placeholder="Jane Smith"></div>
+        <div class="fg"><label class="lbl">Type</label>
+          <select class="sel" id="f-type">
+            <option>Roof</option><option>Concrete</option><option>Handyman</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg row">
+        <div class="fg"><label class="lbl">Date</label><input class="inp" id="f-date" type="date"></div>
+        <div class="fg"><label class="lbl">Phase</label>
+          <select class="sel" id="f-phase">
+            <option>Lead</option><option>Inspection</option><option>Filed</option>
+            <option>Approved</option><option>In Progress</option><option>Complete</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg row">
+        <div class="fg"><label class="lbl">Contract ($)</label><input class="inp" id="f-contract" type="number" placeholder="0"></div>
+        <div class="fg"><label class="lbl">My Payout ($)</label><input class="inp" id="f-payout" type="number" placeholder="0"></div>
+      </div>
+      <div class="fg"><label class="lbl">Notes</label><input class="inp" id="f-notes" placeholder="Carrier, sq footage, details..."></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-gold" id="fm-save" onclick="saveJob()">Save</button>
+      <button class="btn btn-red" id="fm-delete" onclick="deleteJob()" style="display:none;">Delete</button>
+      <button class="btn btn-cancel" onclick="closeModal('formModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ─── GOOGLE SHEETS ────────────────────────────────────────────────────────────
+const SHEET_ID = 'NEW_SHEET_ID'; // Will be replaced after sheet creation
+const API_URL = 'https://script.google.com/macros/s/SCRIPT_ID/exec'; // Will be set
+
+const PHASES = ['Lead','Inspection','Filed','Approved','In Progress','Complete'];
+const TYPE_ICONS = {Roof:'🏠',Concrete:'🏗',Handyman:'🔨'};
+const PHASE_COLORS = {
+  Lead:'#555c70',Inspection:'#c8922a',Filed:'#4a8ec2',
+  Approved:'#3db87a','In Progress':'#c8922a',Complete:'#3db87a'
+};
+
+let jobs = [];
+let currentDetailId = null;
+let editingId = null;
+
+// ─── SAMPLE DATA (loads until Google Sheet connected) ──────────────────────
+function loadSampleData(){
+  jobs = [
+    {id:'1',name:'Tessie Reynolds',type:'Roof',date:'2026-08-01',phase:'Approved',contract:18500,payout:3200,notes:'State Farm, 28sq Architectural'},
+    {id:'2',name:'Joey Contreras',type:'Roof',date:'2026-08-10',phase:'Filed',contract:0,payout:0,notes:'Allstate claim filed'},
+    {id:'3',name:'Joseph Pardo',type:'Roof',date:'2026-08-15',phase:'Inspection',contract:0,payout:0,notes:'Farmers Insurance'},
+    {id:'4',name:'Rebecca Aaron',type:'Roof',date:'2026-07-20',phase:'Complete',contract:22400,payout:4100,notes:'USAA, 32sq Architectural'},
+    {id:'5',name:'Ronald Roberts',type:'Concrete',date:'2026-08-05',phase:'In Progress',contract:8500,payout:2125,notes:'Driveway 480sqft'},
+    {id:'6',name:'Anne Williams',type:'Handyman',date:'2026-07-15',phase:'Complete',contract:3200,payout:960,notes:'Fence + gutter repair'},
+    {id:'7',name:'Amy Dupont',type:'Roof',date:'2026-08-20',phase:'Lead',contract:0,payout:0,notes:'Referral from neighbor'},
+  ];
+  renderAll();
+}
+
+// ─── STATS ────────────────────────────────────────────────────────────────────
+function renderStats(){
+  const complete = jobs.filter(j=>j.phase==='Complete');
+  const active = jobs.filter(j=>j.phase!=='Complete');
+  const totalPayout = complete.reduce((s,j)=>s+(parseFloat(j.payout)||0),0);
+  const biggest = complete.length ? Math.max(...complete.map(j=>parseFloat(j.payout)||0)) : 0;
+  const fmt = n => n>=1000?'$'+(n/1000).toFixed(1)+'k':'$'+n.toLocaleString();
+  document.getElementById('statsBar').innerHTML = [
+    {label:'Collected',val:fmt(totalPayout),color:'var(--green)'},
+    {label:'In Progress',val:active.length,color:'var(--gold)'},
+    {label:'Complete',val:complete.length,color:'var(--white)'},
+    {label:'Best Job',val:fmt(biggest),color:'var(--gold)'},
+  ].map(s=>`<div class="stat-box">
+    <div class="stat-label">${s.label}</div>
+    <div class="stat-val" style="color:${s.color}">${s.val}</div>
+  </div>`).join('');
+}
+
+// ─── JOB LIST ─────────────────────────────────────────────────────────────────
+function renderJobs(){
+  const active = jobs.filter(j=>j.phase!=='Complete');
+  const complete = jobs.filter(j=>j.phase==='Complete').sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+  document.getElementById('activeJobs').innerHTML = active.length
+    ? active.map(jobCardHTML).join('')
+    : '<div style="color:var(--dim);font-size:13px;padding:12px 0;">No active jobs — tap + Job to add one</div>';
+
+  document.getElementById('trophyCase').innerHTML = complete.length
+    ? complete.map(trophyCardHTML).join('')
+    : '<div style="color:var(--dim);font-size:13px;padding:12px 0;">Completed jobs will appear here 🏆</div>';
+}
+
+function jobCardHTML(j){
+  const color = PHASE_COLORS[j.phase]||'#555';
+  const payout = parseFloat(j.payout)||0;
+  return `<div class="job-card active-job" onclick="openDetail('${j.id}')">
+    <div class="job-dot" style="background:${color}"></div>
+    <div class="job-info">
+      <div class="job-name">${j.name}</div>
+      <div class="job-meta">${TYPE_ICONS[j.type]||''} ${j.type} · ${fmtDate(j.date)}</div>
+    </div>
+    <div class="job-right">
+      ${payout>0?`<div class="job-payout">$${payout.toLocaleString()}</div>`:''}
+      <span class="job-phase" style="background:${color}22;color:${color}">${j.phase}</span>
+    </div>
+  </div>`;
+}
+
+function trophyCardHTML(j){
+  const payout = parseFloat(j.payout)||0;
+  const icon = TYPE_ICONS[j.type]||'🏆';
+  return `<div class="trophy-card" onclick="openDetail('${j.id}')">
+    <div class="trophy-img">${icon}</div>
+    <div class="trophy-body">
+      <div class="trophy-name">${j.name}</div>
+      <div class="trophy-payout">$${payout.toLocaleString()}</div>
+      <div class="trophy-date">${fmtDate(j.date)}</div>
+    </div>
+  </div>`;
+}
+
+// ─── DETAIL MODAL ──────────────────────────────────────────────────────────────
+function openDetail(id){
+  currentDetailId = id;
+  const j = jobs.find(x=>x.id===id);
+  if(!j)return;
+  const phaseIdx = PHASES.indexOf(j.phase);
+  document.getElementById('dm-name').textContent = j.name;
+  document.getElementById('dm-sub').textContent = `${TYPE_ICONS[j.type]||''} ${j.type} · ${fmtDate(j.date)}${j.notes?' · '+j.notes:''}`;
+  document.getElementById('dm-track').innerHTML = PHASES.map((_,i)=>
+    `<div class="phase-dot ${i<phaseIdx?'done':i===phaseIdx?'current':''}"></div>`
+  ).join('');
+  document.getElementById('dm-phases').innerHTML = PHASES.map((p,i)=>
+    `<div class="phase-name ${i===phaseIdx?'active':''}">${p}</div>`
+  ).join('');
+  const contract = parseFloat(j.contract)||0;
+  const payout = parseFloat(j.payout)||0;
+  const pct = contract>0?((payout/contract)*100).toFixed(1)+'%':'—';
+  document.getElementById('dm-stats').innerHTML = [
+    {l:'Contract',v:contract>0?'$'+contract.toLocaleString():'—',c:'var(--white)'},
+    {l:'My Payout',v:payout>0?'$'+payout.toLocaleString():'Pending',c:'var(--green)'},
+    {l:'Revenue %',v:pct,c:parseFloat(pct)>=20?'var(--green)':parseFloat(pct)>=12?'var(--gold)':'var(--dim)'},
+    {l:'Status',v:j.phase,c:PHASE_COLORS[j.phase]||'var(--dim)'},
+  ].map(s=>`<div class="modal-stat"><div class="ml">${s.l}</div><div class="mv" style="color:${s.c}">${s.v}</div></div>`).join('');
+  openModal('detailModal');
+}
+
+// ─── FORM MODAL ───────────────────────────────────────────────────────────────
+function openAdd(){
+  editingId=null;
+  document.getElementById('fm-title').textContent='New Job';
+  document.getElementById('f-name').value='';
+  document.getElementById('f-type').value='Roof';
+  document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('f-phase').value='Lead';
+  document.getElementById('f-contract').value='';
+  document.getElementById('f-payout').value='';
+  document.getElementById('f-notes').value='';
+  document.getElementById('fm-delete').style.display='none';
+  openModal('formModal');
+}
+
+function openEdit(id){
+  closeModal('detailModal');
+  editingId=id;
+  const j=jobs.find(x=>x.id===id);if(!j)return;
+  document.getElementById('fm-title').textContent='Edit Job';
+  document.getElementById('f-name').value=j.name||'';
+  document.getElementById('f-type').value=j.type||'Roof';
+  document.getElementById('f-date').value=j.date||'';
+  document.getElementById('f-phase').value=j.phase||'Lead';
+  document.getElementById('f-contract').value=j.contract||'';
+  document.getElementById('f-payout').value=j.payout||'';
+  document.getElementById('f-notes').value=j.notes||'';
+  document.getElementById('fm-delete').style.display='block';
+  setTimeout(()=>openModal('formModal'),200);
+}
+
+function saveJob(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){showToast('Enter a name');return;}
+  const job={
+    id:editingId||Date.now().toString(),
+    name,
+    type:document.getElementById('f-type').value,
+    date:document.getElementById('f-date').value,
+    phase:document.getElementById('f-phase').value,
+    contract:parseFloat(document.getElementById('f-contract').value)||0,
+    payout:parseFloat(document.getElementById('f-payout').value)||0,
+    notes:document.getElementById('f-notes').value,
+  };
+  if(editingId){
+    const idx=jobs.findIndex(j=>j.id===editingId);
+    if(idx>=0)jobs[idx]=job;
+  } else {
+    jobs.unshift(job);
+  }
+  saveToStorage();
+  closeModal('formModal');
+  renderAll();
+  showToast(editingId?'Job updated ✓':'Job added ✓');
+}
+
+function deleteJob(){
+  if(!editingId||!confirm('Delete this job?'))return;
+  jobs=jobs.filter(j=>j.id!==editingId);
+  saveToStorage();
+  closeModal('formModal');
+  renderAll();
+  showToast('Deleted');
+}
+
+// ─── STORAGE (localStorage until Google Sheet connected) ──────────────────────
+function saveToStorage(){
+  try{localStorage.setItem('torres_builds',JSON.stringify(jobs));}catch(e){}
+}
+function loadFromStorage(){
+  try{
+    const s=localStorage.getItem('torres_builds');
+    if(s){jobs=JSON.parse(s);renderAll();}
+    else{loadSampleData();}
+  }catch(e){loadSampleData();}
+}
+
+// ─── MODAL HELPERS ────────────────────────────────────────────────────────────
+function openModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');}));
+
+function fmtDate(d){
+  if(!d)return'';
+  try{return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+  catch(e){return d;}
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+function renderAll(){renderStats();renderJobs();}
+
+// ─── ANIMATED SCENE ────────────────────────────────────────────────────────────
+const canvas = document.getElementById('scene');
+const ctx = canvas.getContext('2d');
+let t = 0;
+let winking = false;
+let winkTimer = 0;
+
+function resizeCanvas(){
+  canvas.width=canvas.offsetWidth*window.devicePixelRatio;
+  canvas.height=canvas.offsetHeight*window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio,window.devicePixelRatio);
+}
+resizeCanvas();
+window.addEventListener('resize',resizeCanvas);
+
+canvas.addEventListener('click',()=>{
+  winking=true;winkTimer=60;
+  showToast("💪 Let's get it!");
+});
+
+function drawScene(){
+  const W=canvas.offsetWidth, H=canvas.offsetHeight;
+  ctx.clearRect(0,0,W,H);
+
+  // Sky gradient
+  const sky=ctx.createLinearGradient(0,0,0,H*0.65);
+  sky.addColorStop(0,'#5ba3d9');sky.addColorStop(1,'#87CEEB');
+  ctx.fillStyle=sky;ctx.fillRect(0,0,W,H*0.65);
+
+  // Clouds
+  drawCloud(ctx,W*0.15+Math.sin(t*0.3)*8,H*0.1,60);
+  drawCloud(ctx,W*0.7+Math.sin(t*0.2+1)*6,H*0.06,80);
+  drawCloud(ctx,W*0.45+Math.sin(t*0.25+2)*5,H*0.16,50);
+
+  // Ground
+  const gr=ctx.createLinearGradient(0,H*0.65,0,H);
+  gr.addColorStop(0,'#5a8a5a');gr.addColorStop(1,'#3a5a3a');
+  ctx.fillStyle=gr;ctx.fillRect(0,H*0.65,W,H*0.35);
+
+  // House
+  const hx=W*0.5-55, hy=H*0.32;
+  // Walls
+  ctx.fillStyle='#eaeade';ctx.fillRect(hx,hy,110,80);
+  // Brick front (left half)
+  ctx.fillStyle='#8B3A2A';ctx.fillRect(hx,hy,55,80);
+  // Roof
+  ctx.fillStyle='#2a2a2a';
+  ctx.beginPath();ctx.moveTo(hx-12,hy);ctx.lineTo(W*0.5,hy-42);ctx.lineTo(hx+122,hy);ctx.closePath();ctx.fill();
+  // Door
+  ctx.fillStyle='#3a1a0a';ctx.fillRect(W*0.5-10,hy+48,20,32);
+  // Windows
+  ctx.fillStyle='#88aacc';
+  ctx.fillRect(hx+8,hy+18,22,18);ctx.fillRect(hx+68,hy+18,22,18);
+  // Chimney
+  ctx.fillStyle='#6a3a2a';ctx.fillRect(hx+78,hy-32,16,36);
+
+  // ROOF SLOPE (where Chris stands)
+  const rx=W*0.5-30, ry=hy-20;
+
+  // Shadow under Chris
+  ctx.fillStyle='rgba(0,0,0,0.15)';
+  ctx.beginPath();ctx.ellipse(rx+20,ry+68,22,5,0,0,Math.PI*2);ctx.fill();
+
+  // Animated Chris
+  const bob=Math.sin(t*2)*1.5;
+  const cx2=rx+12, cy=ry+bob;
+
+  // Legs (shorts)
+  ctx.fillStyle='#3a3a5a';
+  ctx.fillRect(cx2+2,cy+38,9,14); // left leg
+  ctx.fillRect(cx2+13,cy+38,9,14); // right leg
+  // Shoes
+  ctx.fillStyle='#111';
+  ctx.fillRect(cx2,cy+52,11,5);
+  ctx.fillRect(cx2+12,cy+52,11,5);
+  // Body - green tshirt
+  ctx.fillStyle='#2d5c2d';
+  ctx.fillRect(cx2,cy+18,24,22);
+  // Arms
+  const armSwing=Math.sin(t*2)*6;
+  ctx.fillStyle='#c8956c';
+  ctx.save();ctx.translate(cx2-3,cy+22);ctx.rotate((-20+armSwing)*Math.PI/180);ctx.fillRect(-4,-4,8,18);ctx.restore();
+  ctx.save();ctx.translate(cx2+27,cy+22);ctx.rotate((20-armSwing)*Math.PI/180);ctx.fillRect(-4,-4,8,18);ctx.restore();
+  // Head
+  ctx.fillStyle='#c8956c';
+  ctx.fillRect(cx2+3,cy+4,18,17);
+  // Hat brim
+  ctx.fillStyle='#111122';
+  ctx.fillRect(cx2-1,cy+3,26,4);
+  // Hat top
+  ctx.fillRect(cx2+3,cy-8,18,13);
+  // Eyes
+  if(winking&&winkTimer>0){
+    winkTimer--;
+    // Wink - right eye closed
+    ctx.fillStyle='#333';ctx.fillRect(cx2+6,cy+10,4,2);
+    ctx.beginPath();ctx.arc(cx2+15,cy+11,2.5,0,Math.PI*2);ctx.fillStyle='#333';ctx.fill();
+    if(winkTimer<=0)winking=false;
+  } else {
+    // Look up animation - eyes shift up
+    const eyeY = Math.sin(t*0.5)>0.7 ? cy+8 : cy+11;
+    ctx.fillStyle='#333';
+    ctx.beginPath();ctx.arc(cx2+7,eyeY,2.5,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(cx2+15,eyeY,2.5,0,Math.PI*2);ctx.fill();
+    // Occasionally looks up (at viewer)
+    if(Math.sin(t*0.5)>0.7){
+      ctx.strokeStyle='rgba(255,255,255,0.4)';ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(cx2+11,eyeY-8);ctx.lineTo(cx2+11,eyeY-20);ctx.stroke();
+    }
+  }
+  // Smile
+  ctx.strokeStyle='#7a4a2a';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(cx2+11,cy+16,4,0.2,Math.PI-0.2);ctx.stroke();
+
+  // Hammer in right hand
+  const hamAngle=(Math.sin(t*3)*25)*Math.PI/180;
+  ctx.save();
+  ctx.translate(cx2+30,cy+22);
+  ctx.rotate(hamAngle);
+  ctx.fillStyle='#888';ctx.fillRect(-2,-18,4,22);
+  ctx.fillStyle='#555';ctx.fillRect(-6,-22,12,8);
+  ctx.restore();
+
+  // "Funny shirt" text on torso
+  ctx.fillStyle='rgba(255,255,255,0.7)';ctx.font='bold 5px Inter';
+  ctx.fillText('DEFUND',cx2+1,cy+28);ctx.fillText('MEDIA',cx2+3,cy+34);
+
+  // Sun
+  ctx.fillStyle='#FFD700';
+  ctx.beginPath();ctx.arc(W*0.88,H*0.08,18,0,Math.PI*2);ctx.fill();
+  // Sun rays
+  for(let i=0;i<8;i++){
+    const a=i*Math.PI/4+t*0.3;
+    ctx.strokeStyle='rgba(255,215,0,0.5)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(W*0.88+Math.cos(a)*22,H*0.08+Math.sin(a)*22);
+    ctx.lineTo(W*0.88+Math.cos(a)*30,H*0.08+Math.sin(a)*30);ctx.stroke();
+  }
+
+  // Active job count badge on roof
+  const activeCount=jobs.filter(j=>j.phase!=='Complete').length;
+  if(activeCount>0){
+    ctx.fillStyle='#c8922a';ctx.beginPath();ctx.arc(W*0.5+52,hy-28,12,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#000';ctx.font='bold 11px Inter';ctx.textAlign='center';
+    ctx.fillText(activeCount,W*0.5+52,hy-24);ctx.textAlign='left';
+  }
+
+  t+=0.04;
+  requestAnimationFrame(drawScene);
+}
+
+function drawCloud(ctx,x,y,w){
+  ctx.fillStyle='rgba(255,255,255,0.85)';
+  [[0,0,w*0.4],[w*0.25,-8,w*0.35],[w*0.5,0,w*0.35],[w*0.75,0,w*0.3]].forEach(([dx,dy,r])=>{
+    ctx.beginPath();ctx.arc(x+dx,y+dy,r,0,Math.PI*2);ctx.fill();
+  });
+}
+
+// Init
+loadFromStorage();
+drawScene();
+</script>
+</body>
+</html>
