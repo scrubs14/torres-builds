@@ -282,10 +282,10 @@ function calcStats(){
   const totalPayout=done.reduce((s,j)=>s+j.payout,0);
   const totalRevenue=done.reduce((s,j)=>s+j.contract,0);
   const avgPayout=done.length?totalPayout/done.length:0;
-  const roofDone=done.filter(j=>j.squares>0&&j.payout>0&&!j.split);
+  const roofDone=done.filter(j=>j.squares>0&&j.contract>0);
   const totalSq=roofDone.reduce((s,j)=>s+j.squares,0);
   const avgSq=roofDone.length?totalSq/roofDone.length:0;
-  const avgPerSq=totalSq>0?roofDone.reduce((s,j)=>s+j.payout,0)/totalSq:0;
+  const avgPerSq=totalSq>0?roofDone.reduce((s,j)=>s+j.contract,0)/totalSq:0;
   const phaseCounts={};
   PHASES.forEach(p=>phaseCounts[p]=0);
   active.forEach(j=>phaseCounts[j.phase]=(phaseCounts[j.phase]||0)+1);
@@ -321,7 +321,7 @@ function renderActive(){
       <div class="stats-row">
         <div class="sr-item"><div class="sr-val">${fmtK(s.avgPayout)}</div><div class="sr-label">Avg Payout</div></div>
         <div class="sr-item"><div class="sr-val">${s.avgSq>0?Math.round(s.avgSq)+' sq':'—'}</div><div class="sr-label">Avg Squares</div></div>
-        <div class="sr-item"><div class="sr-val">${s.avgPerSq>0?'$'+Math.round(s.avgPerSq)+'/sq':'—'}</div><div class="sr-label">$/Square</div></div>
+        <div class="sr-item"><div class="sr-val">${s.avgPerSq>0?'$'+Math.round(s.avgPerSq)+'/sq':'—'}</div><div class="sr-label">Avg $/Sq</div></div>
         <div class="sr-item"><div class="sr-val" style="color:var(--orange)">${s.active.length}</div><div class="sr-label">Active</div></div>
       </div>
     </div>
@@ -422,7 +422,7 @@ function renderCalc(){
   let html=`<div class="calc-wrap">
     <div class="calc-card">
       <div class="calc-title">Income Projector</div>
-      ${avgData?`<div class="avg-banner">📊 Your avg: <strong>$${Math.round(avgData.avgPerSq)}/sq</strong> from ${avgData.count} completed jobs — used for your personal projection below</div>`:''}
+      ${avgData?`<div class="avg-banner">📊 Your avg contract price: <strong>$${Math.round(avgData.avgPerSq)}/sq</strong> from ${avgData.count} completed jobs</div>`:''}
       <div class="fg row">
         <div class="fg"><label class="lbl">Square Count *</label><input class="inp" id="cSq" type="number" placeholder="28" oninput="calcResult()"></div>
         <div class="fg"><label class="lbl">Shingle Type</label>
@@ -527,7 +527,7 @@ function calcResult(){
         <span class="cr-label" style="color:var(--gold);font-weight:700">Your Avg Projection</span>
         <span class="cr-val" style="font-family:var(--font-d);font-size:24px;font-weight:900;color:var(--gold)">${fmt(avgPayout)}</span>
       </div>
-      <div class="cr-row"><span class="cr-label" style="font-size:9px">$${Math.round(s.avgPerSq)}/sq × ${sq}sq from your ${s.roofDone.length} jobs</span>
+      <div class="cr-row"><span class="cr-label" style="font-size:9px">$${Math.round(s.avgPerSq)}/sq contract avg × ${sq}sq from your ${s.roofDone.length} jobs</span>
       <span class="cr-val" style="font-size:11px;color:${avgPayout>=payout?'var(--green)':'var(--red)'}">${avgPayout>=payout?'+':''}${fmt(avgPayout-payout)}</span></div>
     </div>`:''}
   </div>`;
