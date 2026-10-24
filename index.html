@@ -2,380 +2,825 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <title>Torres Builds</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Barlow+Condensed:wght@700;800;900&display=swap');
-:root{
-  --black:#07080a;--surface:#0f1014;--card:#14161b;--card2:#1a1d24;
-  --border:#22252e;--dim:#555c70;--text:#9da3b4;--white:#eef0f5;
-  --gold:#c8922a;--gold-bg:rgba(200,146,42,0.1);
-  --green:#3db87a;--green-bg:rgba(61,184,122,0.1);
-  --red:#e05c5c;--blue:#4a8ec2;--sky:#87CEEB;
-  --font-d:'Barlow Condensed',sans-serif;--font-b:'Inter',sans-serif;
-  --safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
-}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;background:var(--black);color:var(--text);font-family:var(--font-b);overflow-x:hidden;}
-input,select,textarea,button{font-family:var(--font-b);}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Arial',sans-serif;}
+canvas{display:block;width:100vw;height:100vh;touch-action:none;}
 
-/* HEADER */
-.header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;padding-top:calc(12px + var(--safe-top));display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
-.brand{font-family:var(--font-d);font-size:22px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:var(--white);}
-.brand em{color:var(--gold);font-style:normal;}
-.add-btn{background:var(--gold);border:none;color:#000;font-family:var(--font-d);font-size:15px;font-weight:900;text-transform:uppercase;letter-spacing:1px;padding:8px 16px;border-radius:8px;cursor:pointer;}
+/* HUD */
+#hud{position:fixed;top:0;left:0;right:0;padding:env(safe-area-inset-top,10px) 16px 8px;display:flex;justify-content:space-between;align-items:center;pointer-events:none;z-index:10;background:linear-gradient(180deg,rgba(0,0,0,0.65) 0%,transparent 100%);}
+.hud-brand{font-size:18px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:#fff;}
+.hud-brand em{color:#c8922a;font-style:normal;}
+.hud-stats{display:flex;gap:12px;}
+.hud-stat{text-align:right;}
+.hud-stat .hl{font-size:8px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.5);}
+.hud-stat .hv{font-size:15px;font-weight:900;color:#c8922a;}
 
-/* STATS BAR */
-.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 14px;background:var(--surface);border-bottom:1px solid var(--border);}
-.stat-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 8px;text-align:center;}
-.stat-label{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:4px;}
-.stat-val{font-family:var(--font-d);font-size:20px;font-weight:900;line-height:1;}
+/* ADD BTN */
+#addBtn{position:fixed;bottom:calc(env(safe-area-inset-bottom,16px) + 16px);right:16px;width:52px;height:52px;background:#c8922a;border:none;border-radius:50%;font-size:26px;color:#000;font-weight:900;cursor:pointer;z-index:20;box-shadow:0 4px 20px rgba(200,146,42,0.5);display:flex;align-items:center;justify-content:center;}
 
-/* SCENE */
-.scene-wrap{position:relative;background:linear-gradient(180deg,#87CEEB 0%,#b8d9f0 50%,#5a8a5a 100%);height:220px;overflow:hidden;flex-shrink:0;}
-.scene-wrap canvas{position:absolute;inset:0;width:100%;height:100%;}
-.scene-tap-hint{position:absolute;bottom:8px;right:10px;font-size:10px;color:rgba(255,255,255,0.6);pointer-events:none;}
+/* ZOOM DETAIL */
+#zoomOverlay{position:fixed;inset:0;z-index:30;display:none;align-items:flex-end;justify-content:center;pointer-events:none;}
+#zoomOverlay.show{display:flex;pointer-events:all;}
+#zoomBg{position:absolute;inset:0;background:rgba(0,0,0,0);}
+#zoomBg.show{background:rgba(0,0,0,0.5);}
+#zoomCard{background:#14161b;border:1px solid rgba(200,146,42,0.4);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));transform:translateY(100%);transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);pointer-events:all;}
+#zoomCard.show{transform:translateY(0);}
+.zc-handle{width:36px;height:4px;background:#333;border-radius:2px;margin:0 auto 16px;}
+.zc-phase{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:3px 10px;border-radius:8px;display:inline-block;margin-bottom:10px;}
+.zc-name{font-size:24px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#eef0f5;margin-bottom:4px;font-family:'Arial',sans-serif;}
+.zc-date{font-size:11px;color:#555c70;margin-bottom:14px;}
+.zc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.zc-stat{background:#1a1d24;border-radius:8px;padding:10px 12px;}
+.zc-sl{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:#555c70;margin-bottom:3px;}
+.zc-sv{font-size:18px;font-weight:700;color:#eef0f5;}
+.zc-notes{background:#1a1d24;border-radius:8px;padding:10px 12px;font-size:12px;color:#9da3b4;margin-bottom:14px;}
+.zc-btns{display:flex;gap:8px;}
+.zc-btn{flex:1;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:0.5px;}
+.zc-edit{background:#c8922a;color:#000;}
+.zc-close{background:#1a1d24;border:1px solid #22252e;color:#9da3b4;}
 
-/* SECTIONS */
-.page{padding:14px;padding-bottom:calc(20px + var(--safe-bot));}
-.section-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
-
-/* JOB CARDS */
-.jobs-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
-.job-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:12px;}
-.job-card:active{opacity:0.8;transform:scale(0.99);}
-.job-card.active-job{border-color:rgba(200,146,42,0.4);background:var(--gold-bg);}
-.job-card.complete-job{border-color:rgba(61,184,122,0.3);background:var(--green-bg);}
-.job-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-.job-info{flex:1;min-width:0;}
-.job-name{font-family:var(--font-d);font-size:17px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.job-meta{font-size:11px;color:var(--dim);margin-top:2px;}
-.job-right{text-align:right;flex-shrink:0;}
-.job-payout{font-family:var(--font-d);font-size:18px;font-weight:800;color:var(--green);}
-.job-phase{font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;margin-top:3px;display:inline-block;}
-
-/* TROPHY CASE */
-.trophy-scroll{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none;}
-.trophy-scroll::-webkit-scrollbar{display:none;}
-.trophy-card{flex-shrink:0;width:160px;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:all 0.15s;}
-.trophy-card:active{transform:scale(0.97);}
-.trophy-img{height:90px;display:flex;align-items:center;justify-content:center;font-size:44px;background:linear-gradient(135deg,#1a2a1a,#0f1a0f);}
-.trophy-body{padding:10px;}
-.trophy-name{font-family:var(--font-d);font-size:15px;font-weight:800;text-transform:uppercase;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.trophy-payout{font-size:16px;font-weight:700;color:var(--green);margin-top:2px;}
-.trophy-date{font-size:10px;color:var(--dim);margin-top:2px;}
-
-/* MODAL */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:200;display:none;align-items:flex-end;justify-content:center;padding:0;}
-.overlay.show{display:flex;}
-.modal{background:var(--card);border-radius:20px 20px 0 0;width:100%;max-width:500px;padding:24px 20px;padding-bottom:calc(24px + var(--safe-bot));max-height:90vh;overflow-y:auto;}
-.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;}
-.modal-title{font-family:var(--font-d);font-size:22px;font-weight:900;text-transform:uppercase;color:var(--white);margin-bottom:4px;}
-.modal-sub{font-size:12px;color:var(--dim);margin-bottom:18px;}
-.modal-stat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
-.modal-stat{background:var(--card2);border-radius:8px;padding:10px 12px;}
-.modal-stat .ml{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:3px;}
-.modal-stat .mv{font-size:18px;font-weight:700;color:var(--white);}
-.phase-track{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:18px;}
-.phase-dot{flex:1;min-width:40px;height:4px;background:var(--border);border-radius:2px;}
-.phase-dot.done{background:var(--gold);}
-.phase-dot.current{background:var(--green);}
-.phase-names{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px;}
-.phase-name{flex:1;min-width:40px;font-size:8px;text-align:center;color:var(--dim);}
-.phase-name.active{color:var(--gold);font-weight:700;}
-
-/* FORM */
-.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;}
+/* FORM OVERLAY */
+#formOverlay{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:40;display:none;align-items:flex-end;justify-content:center;}
+#formOverlay.show{display:flex;}
+#formCard{background:#14161b;border:1px solid rgba(200,146,42,0.3);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));max-height:92vh;overflow-y:auto;}
+.fc-title{font-size:20px;font-weight:900;text-transform:uppercase;color:#c8922a;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;}
+.fc-x{background:none;border:none;color:#555c70;font-size:22px;cursor:pointer;}
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:11px;}
 .fg.row{flex-direction:row;gap:8px;}
 .fg.row .fg{flex:1;margin-bottom:0;}
-.lbl{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);font-weight:600;}
-.inp{background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--white);font-size:14px;padding:10px 12px;outline:none;width:100%;}
-.inp:focus{border-color:var(--gold);}
-.sel{background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--white);font-size:14px;padding:10px 12px;outline:none;width:100%;-webkit-appearance:none;}
-.btn-row{display:flex;gap:8px;margin-top:8px;}
-.btn{flex:1;border:none;border-radius:8px;font-size:14px;font-weight:700;padding:12px;cursor:pointer;text-transform:uppercase;letter-spacing:0.5px;}
-.btn-gold{background:var(--gold);color:#000;}
-.btn-cancel{background:var(--card2);border:1px solid var(--border);color:var(--text);}
-.btn-red{background:none;border:1px solid var(--red);color:var(--red);}
+.lbl{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:#555c70;font-weight:600;}
+.inp{background:#1a1d24;border:1px solid #22252e;border-radius:8px;color:#eef0f5;font-size:14px;padding:10px 12px;outline:none;width:100%;}
+.inp:focus{border-color:#c8922a;}
+.sel{background:#1a1d24;border:1px solid #22252e;border-radius:8px;color:#eef0f5;font-size:14px;padding:10px 12px;outline:none;width:100%;-webkit-appearance:none;}
+.fbtns{display:flex;gap:8px;margin-top:4px;}
+.fbtn{flex:1;border:none;border-radius:8px;font-size:14px;font-weight:700;padding:12px;cursor:pointer;text-transform:uppercase;}
+.fbtn-gold{background:#c8922a;color:#000;}
+.fbtn-dark{background:#1a1d24;border:1px solid #22252e;color:#9da3b4;}
+.fbtn-red{background:none;border:1px solid #e05c5c;color:#e05c5c;}
 
 /* TOAST */
-#toast{position:fixed;bottom:calc(24px + var(--safe-bot));left:50%;transform:translateX(-50%);background:var(--green);color:#000;font-size:12px;font-weight:700;padding:8px 18px;border-radius:20px;opacity:0;transition:opacity 0.3s;z-index:999;white-space:nowrap;pointer-events:none;}
+#toast{position:fixed;bottom:calc(env(safe-area-inset-bottom,16px)+80px);left:50%;transform:translateX(-50%);background:#3db87a;color:#000;font-size:12px;font-weight:700;padding:8px 18px;border-radius:20px;opacity:0;transition:opacity 0.3s;z-index:99;white-space:nowrap;pointer-events:none;}
 #toast.show{opacity:1;}
+
+/* WALK HINT */
+#walkHint{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(200,146,42,0.95);color:#000;font-size:13px;font-weight:700;padding:10px 20px;border-radius:12px;z-index:25;display:none;text-align:center;pointer-events:none;}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="brand">Torres <em>Builds</em></div>
-  <button class="add-btn" onclick="openAdd()">+ Job</button>
+<canvas id="c"></canvas>
+
+<div id="hud">
+  <div class="hud-brand">Torres <em>Builds</em></div>
+  <div class="hud-stats">
+    <div class="hud-stat"><div class="hl">Collected</div><div class="hv" id="hud-collected">$0</div></div>
+    <div class="hud-stat"><div class="hl">Active</div><div class="hv" id="hud-active">0</div></div>
+  </div>
 </div>
 
-<div class="stats-bar" id="statsBar"></div>
+<button id="addBtn" onclick="startAddMode()">+</button>
+<div id="walkHint">Tap a blank shingle section<br>to place your new job</div>
 
-<div class="scene-wrap">
-  <canvas id="scene"></canvas>
-  <div class="scene-tap-hint">tap Chris 👆</div>
-</div>
-
-<div class="page">
-  <div class="section-label">Active Jobs</div>
-  <div class="jobs-list" id="activeJobs"></div>
-  <div class="section-label">Trophy Case</div>
-  <div class="trophy-scroll" id="trophyCase"></div>
-</div>
-
-<!-- JOB DETAIL MODAL -->
-<div class="overlay" id="detailModal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title" id="dm-name"></div>
-    <div class="modal-sub" id="dm-sub"></div>
-    <div class="phase-track" id="dm-track"></div>
-    <div class="phase-names" id="dm-phases"></div>
-    <div class="modal-stat-row" id="dm-stats"></div>
-    <div class="btn-row">
-      <button class="btn btn-gold" onclick="openEdit(currentDetailId)">Edit Job</button>
-      <button class="btn btn-cancel" onclick="closeModal('detailModal')">Close</button>
+<!-- ZOOM DETAIL -->
+<div id="zoomOverlay">
+  <div id="zoomBg" onclick="closeZoom()"></div>
+  <div id="zoomCard">
+    <div class="zc-handle"></div>
+    <div class="zc-phase" id="zc-phase"></div>
+    <div class="zc-name" id="zc-name"></div>
+    <div class="zc-date" id="zc-date"></div>
+    <div class="zc-grid">
+      <div class="zc-stat"><div class="zc-sl">Contract</div><div class="zc-sv" id="zc-contract"></div></div>
+      <div class="zc-stat"><div class="zc-sl">My Payout</div><div class="zc-sv" id="zc-payout" style="color:#3db87a"></div></div>
+      <div class="zc-stat"><div class="zc-sl">Carrier</div><div class="zc-sv" id="zc-carrier" style="font-size:14px"></div></div>
+      <div class="zc-stat"><div class="zc-sl">Revenue %</div><div class="zc-sv" id="zc-pct"></div></div>
+    </div>
+    <div class="zc-notes" id="zc-notes"></div>
+    <div class="zc-btns">
+      <button class="zc-btn zc-edit" onclick="openEditFromZoom()">Edit Job</button>
+      <button class="zc-btn zc-close" onclick="closeZoom()">Close</button>
     </div>
   </div>
 </div>
 
-<!-- ADD/EDIT MODAL -->
-<div class="overlay" id="formModal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title" id="fm-title">New Job</div>
-    <div style="margin-bottom:16px;">
-      <div class="fg row">
-        <div class="fg"><label class="lbl">Client Name *</label><input class="inp" id="f-name" placeholder="Jane Smith"></div>
-        <div class="fg"><label class="lbl">Type</label>
-          <select class="sel" id="f-type">
-            <option>Roof</option><option>Concrete</option><option>Handyman</option>
-          </select>
-        </div>
-      </div>
-      <div class="fg row">
-        <div class="fg"><label class="lbl">Date</label><input class="inp" id="f-date" type="date"></div>
-        <div class="fg"><label class="lbl">Phase</label>
-          <select class="sel" id="f-phase">
-            <option>Lead</option><option>Inspection</option><option>Filed</option>
-            <option>Approved</option><option>In Progress</option><option>Complete</option>
-          </select>
-        </div>
-      </div>
-      <div class="fg row">
-        <div class="fg"><label class="lbl">Contract ($)</label><input class="inp" id="f-contract" type="number" placeholder="0"></div>
-        <div class="fg"><label class="lbl">My Payout ($)</label><input class="inp" id="f-payout" type="number" placeholder="0"></div>
-      </div>
-      <div class="fg"><label class="lbl">Notes</label><input class="inp" id="f-notes" placeholder="Carrier, sq footage, details..."></div>
+<!-- FORM -->
+<div id="formOverlay">
+  <div id="formCard">
+    <div class="fc-title"><span id="fc-title">New Job</span><button class="fc-x" onclick="closeForm()">✕</button></div>
+    <div class="fg row">
+      <div class="fg"><label class="lbl">Client Name *</label><input class="inp" id="f-name" placeholder="Jane Smith"></div>
+      <div class="fg"><label class="lbl">Type</label><select class="sel" id="f-type"><option>Roof</option><option>Concrete</option><option>Handyman</option></select></div>
     </div>
-    <div class="btn-row">
-      <button class="btn btn-gold" id="fm-save" onclick="saveJob()">Save</button>
-      <button class="btn btn-red" id="fm-delete" onclick="deleteJob()" style="display:none;">Delete</button>
-      <button class="btn btn-cancel" onclick="closeModal('formModal')">Cancel</button>
+    <div class="fg row">
+      <div class="fg"><label class="lbl">Date</label><input class="inp" id="f-date" type="date"></div>
+      <div class="fg"><label class="lbl">Phase</label>
+        <select class="sel" id="f-phase">
+          <option>Lead</option><option>Inspection</option><option>Filed</option>
+          <option>Approved</option><option>In Progress</option><option>Complete</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg row">
+      <div class="fg"><label class="lbl">Contract ($)</label><input class="inp" id="f-contract" type="number" placeholder="0"></div>
+      <div class="fg"><label class="lbl">My Payout ($)</label><input class="inp" id="f-payout" type="number" placeholder="0"></div>
+    </div>
+    <div class="fg"><label class="lbl">Carrier</label><input class="inp" id="f-carrier" placeholder="State Farm"></div>
+    <div class="fg"><label class="lbl">Notes</label><input class="inp" id="f-notes" placeholder="Sq footage, storm date, details..."></div>
+    <div class="fbtns">
+      <button class="fbtn fbtn-gold" onclick="saveJob()">Save Job</button>
+      <button class="fbtn fbtn-red" id="f-delete" onclick="deleteJob()" style="display:none">Delete</button>
+      <button class="fbtn fbtn-dark" onclick="closeForm()">Cancel</button>
     </div>
   </div>
 </div>
 
 <div id="toast"></div>
+<div id="walkHint" id="walkHint"></div>
 
 <script>
-// ─── GOOGLE SHEETS ────────────────────────────────────────────────────────────
-const API_URL = 'https://script.google.com/macros/s/AKfycbwifsHA7co0VvAc9FGtEMUyDbqNw2hFL1C67fonDYOy0AlK0YmFAWtCP0ltCV1dkqc/exec';
-let sheetReady = false;
+const cv = document.getElementById('c');
+const cx = cv.getContext('2d');
 
+// ── DATA ─────────────────────────────────────────────────────────────────────
 const PHASES = ['Lead','Inspection','Filed','Approved','In Progress','Complete'];
-const TYPE_ICONS = {Roof:'🏠',Concrete:'🏗',Handyman:'🔨'};
 const PHASE_COLORS = {
-  Lead:'#555c70',Inspection:'#c8922a',Filed:'#4a8ec2',
-  Approved:'#3db87a','In Progress':'#c8922a',Complete:'#3db87a'
+  Lead:'#555c70', Inspection:'#c8922a', Filed:'#4a8ec2',
+  Approved:'#3db87a', 'In Progress':'#e8a020', Complete:'#2d8a5a'
 };
+const TYPE_ICONS = {Roof:'🏠',Concrete:'🏗',Handyman:'🔨'};
 
 let jobs = [];
-let currentDetailId = null;
 let editingId = null;
+let zoomedJobId = null;
+let addMode = false;
+let walkTarget = null;
+let walkProgress = 0;
+let t = 0;
 
-// ─── SAMPLE DATA (loads until Google Sheet connected) ──────────────────────
-function loadSampleData(){
-  jobs = [
-    {id:'1',name:'Tessie Reynolds',type:'Roof',date:'2026-08-01',phase:'Approved',contract:18500,payout:3200,notes:'State Farm, 28sq Architectural'},
-    {id:'2',name:'Joey Contreras',type:'Roof',date:'2026-08-10',phase:'Filed',contract:0,payout:0,notes:'Allstate claim filed'},
-    {id:'3',name:'Joseph Pardo',type:'Roof',date:'2026-08-15',phase:'Inspection',contract:0,payout:0,notes:'Farmers Insurance'},
-    {id:'4',name:'Rebecca Aaron',type:'Roof',date:'2026-07-20',phase:'Complete',contract:22400,payout:4100,notes:'USAA, 32sq Architectural'},
-    {id:'5',name:'Ronald Roberts',type:'Concrete',date:'2026-08-05',phase:'In Progress',contract:8500,payout:2125,notes:'Driveway 480sqft'},
-    {id:'6',name:'Anne Williams',type:'Handyman',date:'2026-07-15',phase:'Complete',contract:3200,payout:960,notes:'Fence + gutter repair'},
-    {id:'7',name:'Amy Dupont',type:'Roof',date:'2026-08-20',phase:'Lead',contract:0,payout:0,notes:'Referral from neighbor'},
-  ];
-  renderAll();
+// Chris state
+let chris = {x:0.4, y:0, batSwing:0, batDir:1, mode:'fighting', modeTimer:0, coffeeAlpha:0, walking:false};
+let chickens = [];
+let feathers = [];
+let shingleSlots = []; // clickable job zones on the roof
+
+// Canvas size
+let W = 0, H = 0;
+
+function resize(){
+  W = window.innerWidth; H = window.innerHeight;
+  cv.width = W * devicePixelRatio; cv.height = H * devicePixelRatio;
+  cx.scale(devicePixelRatio, devicePixelRatio);
+  buildSlots();
+}
+window.addEventListener('resize', resize);
+
+// ── SHINGLE SLOTS ─────────────────────────────────────────────────────────────
+function buildSlots(){
+  shingleSlots = [];
+  // Roof geometry
+  const rw = W * 0.82, rh = H * 0.36;
+  const rx = W * 0.09, ry = H * 0.18;
+  const ridgeX = rx + rw / 2, ridgeY = ry;
+  const cols = 7, rows = 5;
+  const slotW = rw / cols * 0.9, slotH = rh / rows * 0.8;
+
+  for(let r=0;r<rows;r++){
+    for(let c=0;c<cols;c++){
+      // Slope geometry
+      const frac = (r + 0.5) / rows;
+      const halfW = (rw / 2) * frac;
+      const sy = ry + frac * rh;
+      const sxBase = ridgeX - halfW + c * (halfW * 2 / cols);
+      shingleSlots.push({
+        id: r * cols + c,
+        cx: sxBase + slotW * 0.5,
+        cy: sy - slotH * 0.5,
+        w: slotW, h: slotH,
+        row: r, col: c,
+        jobId: null,
+        hovered: false,
+        glowing: false,
+        glowTimer: 0,
+      });
+    }
+  }
 }
 
-// ─── STATS ────────────────────────────────────────────────────────────────────
-function renderStats(){
-  const complete = jobs.filter(j=>j.phase==='Complete');
-  const active = jobs.filter(j=>j.phase!=='Complete');
-  const totalPayout = complete.reduce((s,j)=>s+(parseFloat(j.payout)||0),0);
-  const biggest = complete.length ? Math.max(...complete.map(j=>parseFloat(j.payout)||0)) : 0;
-  const fmt = n => n>=1000?'$'+(n/1000).toFixed(1)+'k':'$'+n.toLocaleString();
-  document.getElementById('statsBar').innerHTML = [
-    {label:'Collected',val:fmt(totalPayout),color:'var(--green)'},
-    {label:'In Progress',val:active.length,color:'var(--gold)'},
-    {label:'Complete',val:complete.length,color:'var(--white)'},
-    {label:'Best Job',val:fmt(biggest),color:'var(--gold)'},
-  ].map(s=>`<div class="stat-box">
-    <div class="stat-label">${s.label}</div>
-    <div class="stat-val" style="color:${s.color}">${s.val}</div>
-  </div>`).join('');
+// Assign jobs to slots
+function assignJobsToSlots(){
+  shingleSlots.forEach(s => s.jobId = null);
+  jobs.forEach((job, i) => {
+    if(i < shingleSlots.length) shingleSlots[i].jobId = job.id;
+  });
 }
 
-// ─── JOB LIST ─────────────────────────────────────────────────────────────────
-function renderJobs(){
-  const active = jobs.filter(j=>j.phase!=='Complete');
-  const complete = jobs.filter(j=>j.phase==='Complete').sort((a,b)=>new Date(b.date)-new Date(a.date));
-
-  document.getElementById('activeJobs').innerHTML = active.length
-    ? active.map(jobCardHTML).join('')
-    : '<div style="color:var(--dim);font-size:13px;padding:12px 0;">No active jobs — tap + Job to add one</div>';
-
-  document.getElementById('trophyCase').innerHTML = complete.length
-    ? complete.map(trophyCardHTML).join('')
-    : '<div style="color:var(--dim);font-size:13px;padding:12px 0;">Completed jobs will appear here 🏆</div>';
-}
-
-function jobCardHTML(j){
-  const color = PHASE_COLORS[j.phase]||'#555';
-  const payout = parseFloat(j.payout)||0;
-  return `<div class="job-card active-job" onclick="openDetail('${j.id}')">
-    <div class="job-dot" style="background:${color}"></div>
-    <div class="job-info">
-      <div class="job-name">${j.name}</div>
-      <div class="job-meta">${TYPE_ICONS[j.type]||''} ${j.type} · ${fmtDate(j.date)}</div>
-    </div>
-    <div class="job-right">
-      ${payout>0?`<div class="job-payout">$${payout.toLocaleString()}</div>`:''}
-      <span class="job-phase" style="background:${color}22;color:${color}">${j.phase}</span>
-    </div>
-  </div>`;
-}
-
-function trophyCardHTML(j){
-  const payout = parseFloat(j.payout)||0;
-  const icon = TYPE_ICONS[j.type]||'🏆';
-  return `<div class="trophy-card" onclick="openDetail('${j.id}')">
-    <div class="trophy-img">${icon}</div>
-    <div class="trophy-body">
-      <div class="trophy-name">${j.name}</div>
-      <div class="trophy-payout">$${payout.toLocaleString()}</div>
-      <div class="trophy-date">${fmtDate(j.date)}</div>
-    </div>
-  </div>`;
-}
-
-// ─── DETAIL MODAL ──────────────────────────────────────────────────────────────
-function openDetail(id){
-  currentDetailId = id;
-  const j = jobs.find(x=>x.id===id);
-  if(!j)return;
-  const phaseIdx = PHASES.indexOf(j.phase);
-  document.getElementById('dm-name').textContent = j.name;
-  document.getElementById('dm-sub').textContent = `${TYPE_ICONS[j.type]||''} ${j.type} · ${fmtDate(j.date)}${j.notes?' · '+j.notes:''}`;
-  document.getElementById('dm-track').innerHTML = PHASES.map((_,i)=>
-    `<div class="phase-dot ${i<phaseIdx?'done':i===phaseIdx?'current':''}"></div>`
-  ).join('');
-  document.getElementById('dm-phases').innerHTML = PHASES.map((p,i)=>
-    `<div class="phase-name ${i===phaseIdx?'active':''}">${p}</div>`
-  ).join('');
-  const contract = parseFloat(j.contract)||0;
-  const payout = parseFloat(j.payout)||0;
-  const pct = contract>0?((payout/contract)*100).toFixed(1)+'%':'—';
-  document.getElementById('dm-stats').innerHTML = [
-    {l:'Contract',v:contract>0?'$'+contract.toLocaleString():'—',c:'var(--white)'},
-    {l:'My Payout',v:payout>0?'$'+payout.toLocaleString():'Pending',c:'var(--green)'},
-    {l:'Revenue %',v:pct,c:parseFloat(pct)>=20?'var(--green)':parseFloat(pct)>=12?'var(--gold)':'var(--dim)'},
-    {l:'Status',v:j.phase,c:PHASE_COLORS[j.phase]||'var(--dim)'},
-  ].map(s=>`<div class="modal-stat"><div class="ml">${s.l}</div><div class="mv" style="color:${s.c}">${s.v}</div></div>`).join('');
-  openModal('detailModal');
-}
-
-// ─── FORM MODAL ───────────────────────────────────────────────────────────────
-function openAdd(){
-  editingId=null;
-  document.getElementById('fm-title').textContent='New Job';
-  document.getElementById('f-name').value='';
-  document.getElementById('f-type').value='Roof';
-  document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
-  document.getElementById('f-phase').value='Lead';
-  document.getElementById('f-contract').value='';
-  document.getElementById('f-payout').value='';
-  document.getElementById('f-notes').value='';
-  document.getElementById('fm-delete').style.display='none';
-  openModal('formModal');
-}
-
-function openEdit(id){
-  closeModal('detailModal');
-  editingId=id;
-  const j=jobs.find(x=>x.id===id);if(!j)return;
-  document.getElementById('fm-title').textContent='Edit Job';
-  document.getElementById('f-name').value=j.name||'';
-  document.getElementById('f-type').value=j.type||'Roof';
-  document.getElementById('f-date').value=j.date||'';
-  document.getElementById('f-phase').value=j.phase||'Lead';
-  document.getElementById('f-contract').value=j.contract||'';
-  document.getElementById('f-payout').value=j.payout||'';
-  document.getElementById('f-notes').value=j.notes||'';
-  document.getElementById('fm-delete').style.display='block';
-  setTimeout(()=>openModal('formModal'),200);
-}
-
-
-
-// ─── GOOGLE SHEETS SYNC ───────────────────────────────────────────────────────
-function saveToStorage(){
-  try{localStorage.setItem('torres_builds',JSON.stringify(jobs));}catch(e){}
-}
+// ── STORAGE ───────────────────────────────────────────────────────────────────
+const API_URL = 'https://script.google.com/macros/s/AKfycbwifsHA7co0VvAc9FGtEMUyDbqNw2hFL1C67fonDYOy0AlK0YmFAWtCP0ltCV1dkqc/exec';
 
 async function apiCall(action, data){
-  const r = await fetch(API_URL, {
-    method: 'POST',
-    body: JSON.stringify({action, ...data})
-  });
-  return r.json();
+  try{
+    const r = await fetch(API_URL,{method:'POST',body:JSON.stringify({action,...data})});
+    return r.json();
+  }catch(e){return{error:e.message};}
 }
 
-async function loadFromStorage(){
-  // Show loading state
-  document.getElementById('activeJobs').innerHTML = '<div style="color:var(--dim);font-size:13px;padding:12px 0;">Loading from Google Sheets...</div>';
-  try {
-    const r = await apiCall('getAll', {});
+function saveLocal(){ try{localStorage.setItem('tb_jobs',JSON.stringify(jobs));}catch(e){} }
+
+async function loadJobs(){
+  try{
+    const r = await apiCall('getAll',{});
     if(r.jobs && r.jobs.length > 0){
-      jobs = r.jobs.map(j => ({
-        id: String(j.id||j.ID||''),
-        name: String(j.name||j.Name||''),
-        type: String(j.type||j.Type||'Roof'),
-        date: String(j.date||j.Date||''),
-        phase: String(j.phase||j.Phase||'Lead').trim(),
-        contract: parseFloat(j.contract||j.Contract)||0,
-        payout: parseFloat(j.payout||j.Payout)||0,
-        notes: String(j.notes||j.Notes||''),
+      jobs = r.jobs.map(j=>({
+        id:String(j.id||j.ID||Date.now()),
+        name:String(j.name||j.Name||''),
+        type:String(j.type||j.Type||'Roof'),
+        date:String(j.date||j.Date||''),
+        phase:String(j.phase||j.Phase||'Lead').trim(),
+        contract:parseFloat(j.contract||j.Contract)||0,
+        payout:parseFloat(j.payout||j.Payout)||0,
+        carrier:String(j.carrier||j.Carrier||''),
+        notes:String(j.notes||j.Notes||''),
       }));
-      saveToStorage();
-      renderAll();
-      sheetReady = true;
+      saveLocal();
     } else {
-      // No data in sheet yet — load sample data for demo
-      const cached = localStorage.getItem('torres_builds');
-      if(cached){ jobs=JSON.parse(cached); renderAll(); }
-      else { loadSampleData(); }
-      sheetReady = true;
+      const cached = localStorage.getItem('tb_jobs');
+      if(cached) jobs = JSON.parse(cached);
+      else loadSamples();
     }
-  } catch(e) {
-    // Fallback to localStorage
-    const cached = localStorage.getItem('torres_builds');
-    if(cached){ jobs=JSON.parse(cached); }
-    else { loadSampleData(); }
-    renderAll();
-    console.log('Sheet error, using local cache:', e);
+  }catch(e){
+    const cached = localStorage.getItem('tb_jobs');
+    if(cached) jobs = JSON.parse(cached); else loadSamples();
   }
+  assignJobsToSlots();
+  updateHUD();
+}
+
+function loadSamples(){
+  jobs = [
+    {id:'1001',name:'Tessie Reynolds',type:'Roof',date:'2026-08-01',phase:'Approved',contract:18500,payout:3200,carrier:'State Farm',notes:'28sq Architectural'},
+    {id:'1002',name:'Joey Contreras',type:'Roof',date:'2026-08-10',phase:'Filed',contract:0,payout:0,carrier:'Allstate',notes:'Claim filed'},
+    {id:'1003',name:'Joseph Pardo',type:'Roof',date:'2026-08-15',phase:'Inspection',contract:0,payout:0,carrier:'Farmers',notes:''},
+    {id:'1004',name:'Jiovanni Pernell',type:'Roof',date:'2026-08-22',phase:'Lead',contract:0,payout:0,carrier:'',notes:''},
+    {id:'1005',name:'Ronald Roberts',type:'Roof',date:'2026-08-05',phase:'Filed',contract:0,payout:0,carrier:'USAA',notes:''},
+    {id:'1006',name:'Rebecca Aaron',type:'Roof',date:'2026-08-12',phase:'Lead',contract:0,payout:0,carrier:'',notes:''},
+    {id:'1007',name:'Anne Williams',type:'Roof',date:'2026-08-18',phase:'Lead',contract:0,payout:0,carrier:'',notes:'247 Cullom Way'},
+    {id:'1008',name:'Amy Dupont',type:'Roof',date:'2026-08-22',phase:'Lead',contract:0,payout:0,carrier:'',notes:''},
+    {id:'1009',name:'Randy Pineral',type:'Roof',date:'2026-08-22',phase:'Lead',contract:0,payout:0,carrier:'',notes:''},
+    {id:'2001',name:'Rebecca Aaron',type:'Concrete',date:'2026-07-20',phase:'Complete',contract:8500,payout:2125,carrier:'',notes:'Driveway 480sqft'},
+    {id:'3001',name:'Anne Williams',type:'Handyman',date:'2026-07-15',phase:'Complete',contract:3200,payout:960,carrier:'',notes:'Fence + gutter'},
+  ];
+}
+
+// ── HUD ────────────────────────────────────────────────────────────────────────
+function fmt(n){ return n>=1000?'$'+(n/1000).toFixed(1)+'k':'$'+Math.round(n||0).toLocaleString(); }
+function updateHUD(){
+  const collected = jobs.filter(j=>j.phase==='Complete').reduce((s,j)=>s+(j.payout||0),0);
+  const active = jobs.filter(j=>j.phase!=='Complete').length;
+  document.getElementById('hud-collected').textContent = fmt(collected);
+  document.getElementById('hud-active').textContent = active;
+}
+
+// ── CHICKENS ─────────────────────────────────────────────────────────────────
+function spawnChicken(){
+  chickens.push({
+    x:Math.random()<0.5?-20:W+20, y:H*0.72+Math.random()*H*0.1,
+    vx:Math.random()<0.5?1.8:-1.8, vy:-0.5, alive:true,
+    rot:0, phase:Math.random()*Math.PI*2, flap:0
+  });
+}
+for(let i=0;i<3;i++) spawnChicken();
+
+function spawnFeathers(x,y){
+  for(let i=0;i<7;i++) feathers.push({
+    x,y,vx:(Math.random()-0.5)*6,vy:-3-Math.random()*3,
+    rot:Math.random()*Math.PI*2,life:1,size:3+Math.random()*4
+  });
+}
+
+// ── DRAW HELPERS ─────────────────────────────────────────────────────────────
+function drawCloud(x,y,w){
+  cx.fillStyle='rgba(255,255,255,0.88)';
+  [[0,0,w*0.38],[w*0.22,-7,w*0.33],[w*0.48,0,w*0.33],[w*0.72,0,w*0.28]].forEach(([dx,dy,r])=>{
+    cx.beginPath();cx.arc(x+dx,y+dy,r,0,Math.PI*2);cx.fill();
+  });
+}
+
+function drawGokuHair(x,y,sc){
+  cx.fillStyle='#FFD700';
+  const spikes=[[-4,-18,7,16],[-1,-24,6,14],[4,-22,7,15],[9,-18,6,14],[12,-12,5,12],[-8,-12,5,11]];
+  spikes.forEach(([dx,dy,sw,sh])=>{
+    cx.save();cx.translate(x+dx*sc,y+dy*sc);
+    cx.rotate(((dx>0?15:-15)+Math.sin(t*2)*3)*Math.PI/180);
+    cx.beginPath();cx.moveTo(-sw*sc/2,sh*sc/2);cx.lineTo(sw*sc/2,sh*sc/2);cx.lineTo(0,-sh*sc/2);
+    cx.closePath();cx.fill();cx.restore();
+  });
+  const aura=cx.createRadialGradient(x,y-10*sc,2,x,y-10*sc,22*sc);
+  aura.addColorStop(0,'rgba(255,220,0,0.3)');aura.addColorStop(1,'rgba(255,220,0,0)');
+  cx.fillStyle=aura;cx.beginPath();cx.arc(x,y-10*sc,22*sc,0,Math.PI*2);cx.fill();
+}
+
+function drawChicken(ch){
+  if(!ch.alive)return;
+  const bob=Math.sin(t*4+ch.phase)*2;
+  cx.save();cx.translate(ch.x,ch.y+bob);cx.rotate(ch.rot);
+  cx.fillStyle='#f5f0e0';cx.beginPath();cx.ellipse(0,0,10,8,0,0,Math.PI*2);cx.fill();
+  cx.beginPath();cx.arc(10,-4,6,0,Math.PI*2);cx.fill();
+  cx.fillStyle='#e8a020';cx.beginPath();cx.moveTo(16,-4);cx.lineTo(21,-3);cx.lineTo(16,-2);cx.closePath();cx.fill();
+  cx.fillStyle='#222';cx.beginPath();cx.arc(12,-5,1.5,0,Math.PI*2);cx.fill();
+  cx.fillStyle='#e02020';cx.beginPath();cx.arc(10,-10,3,0,Math.PI);cx.fill();
+  cx.strokeStyle='#e8a020';cx.lineWidth=1.5;
+  cx.beginPath();cx.moveTo(-2,7);cx.lineTo(-4,14);cx.stroke();
+  cx.beginPath();cx.moveTo(2,7);cx.lineTo(4,14);cx.stroke();
+  const flap=Math.sin(t*6+ch.phase)*18;
+  cx.fillStyle='#e0d8c0';cx.save();cx.rotate(flap*Math.PI/180);
+  cx.beginPath();cx.ellipse(-5,-2,10,5,Math.PI/6,0,Math.PI*2);cx.fill();cx.restore();
+  cx.restore();
+}
+
+function drawChrisAt(x,y){
+  const sc=1.0;
+  const mode=chris.mode;
+
+  // Power aura
+  const auraR=cx.createRadialGradient(x,y,5,x,y,40);
+  auraR.addColorStop(0,'rgba(255,220,0,0.12)');auraR.addColorStop(1,'rgba(255,220,0,0)');
+  cx.fillStyle=auraR;cx.beginPath();cx.arc(x,y,40,0,Math.PI*2);cx.fill();
+
+  // Shadow
+  cx.fillStyle='rgba(0,0,0,0.25)';
+  cx.beginPath();cx.ellipse(x,y+50*sc,16,4,0,0,Math.PI*2);cx.fill();
+
+  if(mode==='coffee'){
+    // Sitting on stump
+    cx.fillStyle='#5a3a1a';cx.fillRect(x-18,y+28,36,16);
+    cx.fillStyle='#6a4a2a';cx.fillRect(x-18,y+28,36,4);
+    // Legs
+    cx.fillStyle='#2244aa';
+    cx.save();cx.translate(x-8,y+28);cx.rotate(0.5);cx.fillRect(-5,0,10,18);cx.restore();
+    cx.save();cx.translate(x+8,y+28);cx.rotate(-0.5);cx.fillRect(-5,0,10,18);cx.restore();
+    cx.fillStyle='#111';cx.fillRect(x-22,y+42,12,6);cx.fillRect(x+10,y+42,12,6);
+    // Body
+    cx.fillStyle='#e07010';cx.fillRect(x-12,y+6,24,24);
+    cx.fillStyle='#2244aa';cx.fillRect(x-12,y+27,24,4);
+    // Shirt
+    cx.fillStyle='rgba(255,255,255,0.92)';cx.font='bold 4px Arial';cx.textAlign='center';
+    cx.fillText('F**K THE',x,y+17);cx.fillText('COMMIES',x,y+24);cx.textAlign='left';
+    // Arm + mug
+    cx.fillStyle='#c8956c';cx.fillRect(x-18,y+8,8,18);
+    cx.save();cx.translate(x+13,y+10);cx.rotate(-0.7);cx.fillRect(-4,0,8,16);cx.restore();
+    cx.fillStyle='#fff';cx.fillRect(x+2,y+8,18,20);
+    cx.fillStyle='#5a3a1a';cx.fillRect(x+4,y+10,14,8);
+    cx.strokeStyle='#fff';cx.lineWidth=3;
+    cx.beginPath();cx.arc(x+22,y+16,5,Math.PI*0.4,Math.PI*1.6);cx.stroke();
+    // Steam
+    for(let i=0;i<3;i++){
+      cx.strokeStyle=`rgba(200,200,200,${0.5+Math.sin(t*2+i)*0.3})`;cx.lineWidth=1.5;
+      cx.beginPath();cx.moveTo(x+7+i*5+Math.sin(t*2+i)*2,y+6);
+      cx.quadraticCurveTo(x+4+i*5,y,x+7+i*5+Math.sin(t*2+i)*2,y-7);cx.stroke();
+    }
+    // Head
+    cx.fillStyle='#c8956c';cx.beginPath();cx.arc(x,y-2,12,0,Math.PI*2);cx.fill();
+    // Eyes relaxed
+    cx.strokeStyle='#333';cx.lineWidth=1.5;
+    cx.beginPath();cx.arc(x-4,y-3,3,Math.PI*1.1,Math.PI*1.9);cx.stroke();
+    cx.beginPath();cx.arc(x+4,y-3,3,Math.PI*1.1,Math.PI*1.9);cx.stroke();
+    cx.strokeStyle='#7a4a2a';cx.lineWidth=1.5;
+    cx.beginPath();cx.arc(x,y+3,4,0.2,Math.PI-0.2);cx.stroke();
+    // Bubble
+    cx.fillStyle='rgba(255,255,255,0.93)';
+    cx.beginPath();cx.roundRect(x+20,y-30,72,20,6);cx.fill();
+    cx.fillStyle='#333';cx.font='bold 8px Arial';cx.textAlign='left';
+    cx.fillText('coffee break ☕',x+24,y-16);
+    cx.fillStyle='rgba(255,255,255,0.93)';
+    cx.beginPath();cx.moveTo(x+22,y-14);cx.lineTo(x+14,y-8);cx.lineTo(x+28,y-10);cx.closePath();cx.fill();
+  } else {
+    // FIGHTING
+    chris.batSwing+=0.16*chris.batDir;
+    if(chris.batSwing>1.4||chris.batSwing<-0.3){
+      chris.batDir*=-1;
+      if(chris.batSwing>1){
+        spawnFeathers(x+30,y-10);
+        chickens.forEach(ch=>{
+          if(ch.alive&&Math.abs(ch.x-x)<70&&Math.abs(ch.y-y)<50){
+            ch.vx=(ch.x>x?5:-5)+Math.random()*2;ch.vy=-6-Math.random()*3;ch.rot+=(Math.random()-0.5)*0.5;
+          }
+        });
+      }
+    }
+    // Legs wide stance
+    cx.fillStyle='#2244aa';
+    cx.fillRect(x-14,y+26,11,20);cx.fillRect(x+4,y+26,11,20);
+    cx.fillStyle='#111';cx.fillRect(x-16,y+44,14,6);cx.fillRect(x+3,y+44,14,6);
+    // Body orange gi
+    cx.fillStyle='#e07010';cx.fillRect(x-14,y+6,28,22);
+    cx.fillStyle='#2244aa';cx.fillRect(x-14,y+25,28,4);
+    // Shirt text
+    cx.fillStyle='rgba(255,255,255,0.92)';cx.font='bold 4px Arial';cx.textAlign='center';
+    cx.fillText('F**K THE',x,y+17);cx.fillText('COMMIES',x,y+24);cx.textAlign='left';
+    // Left arm
+    cx.fillStyle='#c8956c';
+    cx.save();cx.translate(x-16,y+10);cx.rotate(-0.4);cx.fillRect(-5,-4,9,20);cx.restore();
+    // Right arm + bat
+    cx.save();cx.translate(x+18,y+8);cx.rotate(chris.batSwing);
+    cx.fillStyle='#c8956c';cx.fillRect(-4,-4,9,22);
+    cx.fillStyle='#8B4513';cx.fillRect(-3,-32,7,26);
+    cx.fillStyle='#a0522d';cx.fillRect(-5,-42,11,12);
+    cx.restore();
+    // Head
+    cx.fillStyle='#c8956c';cx.beginPath();cx.arc(x,y-2,12,0,Math.PI*2);cx.fill();
+    // Angry eyes
+    cx.fillStyle='#222';
+    cx.beginPath();cx.arc(x-4,y-3,2.5,0,Math.PI*2);cx.fill();
+    cx.beginPath();cx.arc(x+4,y-3,2.5,0,Math.PI*2);cx.fill();
+    cx.strokeStyle='#5a3520';cx.lineWidth=2;
+    cx.beginPath();cx.moveTo(x-8,y-8);cx.lineTo(x-1,y-6);cx.stroke();
+    cx.beginPath();cx.moveTo(x+8,y-8);cx.lineTo(x+1,y-6);cx.stroke();
+    cx.strokeStyle='#7a4a2a';cx.lineWidth=1.5;
+    cx.beginPath();cx.moveTo(x-3,y+3);cx.quadraticCurveTo(x,y+6,x+4,y+3);cx.stroke();
+  }
+  drawGokuHair(x,y-2,sc);
+}
+
+// ── DRAW SHINGLE SLOT ─────────────────────────────────────────────────────────
+function drawShingleSlot(slot){
+  const job = slot.jobId ? jobs.find(j=>j.id===slot.jobId) : null;
+  const {cx:sx, cy:sy, w, h} = slot;
+
+  if(!job){
+    // Empty slot — subtle outline
+    cx.fillStyle='rgba(255,255,255,0.04)';
+    cx.strokeStyle='rgba(255,255,255,0.08)';
+    cx.lineWidth=1;
+    roundRect(cx, sx-w/2, sy-h/2, w, h, 3);
+    cx.fill();cx.stroke();
+    // In add mode — highlight empty slots
+    if(addMode){
+      cx.fillStyle='rgba(200,146,42,0.2)';
+      cx.strokeStyle='rgba(200,146,42,0.6)';
+      cx.lineWidth=1.5;
+      roundRect(cx, sx-w/2, sy-h/2, w, h, 3);
+      cx.fill();cx.stroke();
+    }
+    return;
+  }
+
+  const phase = job.phase;
+  const color = PHASE_COLORS[phase]||'#555';
+  const isComplete = phase==='Complete';
+  const isActive = phase==='In Progress'||phase==='Approved';
+  const payout = job.payout||0;
+
+  // Glow pulse for active jobs
+  if(isActive||slot.glowing){
+    const glowA=0.15+Math.sin(t*3+slot.id)*0.1;
+    cx.shadowColor=color;cx.shadowBlur=12;
+  }
+
+  // Shingle background
+  if(isComplete){
+    // Laid shingles — textured dark
+    const grad=cx.createLinearGradient(sx-w/2,sy-h/2,sx-w/2,sy+h/2);
+    grad.addColorStop(0,'#2d5a2d');grad.addColorStop(1,'#1a3a1a');
+    cx.fillStyle=grad;
+  } else if(isActive){
+    const grad=cx.createLinearGradient(sx-w/2,sy-h/2,sx-w/2,sy+h/2);
+    grad.addColorStop(0,'#5a3a10');grad.addColorStop(1,'#3a2008');
+    cx.fillStyle=grad;
+  } else {
+    // Other phases
+    cx.fillStyle=color+'33';
+  }
+  cx.strokeStyle=color;cx.lineWidth=slot.hovered?2.5:1.5;
+  roundRect(cx, sx-w/2, sy-h/2, w, h, 4);
+  cx.fill();cx.stroke();
+  cx.shadowBlur=0;
+
+  // Shingle texture lines (horizontal grooves)
+  cx.strokeStyle=isComplete?'rgba(61,184,122,0.15)':'rgba(255,255,255,0.06)';
+  cx.lineWidth=0.5;
+  for(let li=1;li<4;li++){
+    const ly=sy-h/2+li*(h/4);
+    cx.beginPath();cx.moveTo(sx-w/2+3,ly);cx.lineTo(sx+w/2-3,ly);cx.stroke();
+  }
+
+  // Phase dot
+  cx.fillStyle=color;
+  cx.beginPath();cx.arc(sx-w/2+7,sy-h/2+7,3.5,0,Math.PI*2);cx.fill();
+
+  // Name — truncated
+  const maxChars = w<60?6:w<80?8:10;
+  const displayName = job.name.split(' ')[0].substring(0,maxChars);
+  cx.fillStyle=isComplete?'rgba(255,255,255,0.9)':'rgba(255,255,255,0.75)';
+  cx.font=`bold ${Math.min(9,w/7)}px Arial`;
+  cx.textAlign='center';
+  cx.fillText(displayName, sx, sy+2);
+
+  // Payout
+  if(payout>0){
+    cx.fillStyle=isComplete?'#3db87a':'#c8922a';
+    cx.font=`${Math.min(8,w/8)}px Arial`;
+    cx.fillText(fmt(payout), sx, sy+12);
+  }
+  cx.textAlign='left';
+
+  // Complete checkmark
+  if(isComplete){
+    cx.fillStyle='rgba(61,184,122,0.8)';
+    cx.font=`${Math.min(10,w/6)}px Arial`;
+    cx.textAlign='center';
+    cx.fillText('✓', sx, sy-h/2+14);
+    cx.textAlign='left';
+  }
+
+  // In progress — nail animation
+  if(phase==='In Progress'){
+    const nailBob=Math.sin(t*8+slot.id)*2;
+    cx.fillStyle='#888';
+    cx.fillRect(sx+w/2-9, sy-h/2+3+nailBob, 3, 7);
+    cx.fillStyle='#555';cx.fillRect(sx+w/2-11, sy-h/2+2+nailBob, 7, 3);
+  }
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
+}
+
+// ── MAIN DRAW ─────────────────────────────────────────────────────────────────
+function draw(){
+  cx.clearRect(0,0,W,H);
+
+  // Sky
+  const sky=cx.createLinearGradient(0,0,0,H*0.65);
+  sky.addColorStop(0,'#2a4a7a');sky.addColorStop(0.5,'#4a7ab0');sky.addColorStop(1,'#87CEEB');
+  cx.fillStyle=sky;cx.fillRect(0,0,W,H);
+
+  // Stars (evening vibe)
+  if(!stars.length){for(let i=0;i<30;i++) stars.push({x:Math.random()*W,y:Math.random()*H*0.35,r:Math.random()*1.2+0.3});}
+  stars.forEach(s=>{
+    cx.fillStyle=`rgba(255,255,255,${0.3+Math.sin(t*1.5+s.x)*0.3})`;
+    cx.beginPath();cx.arc(s.x,s.y,s.r,0,Math.PI*2);cx.fill();
+  });
+
+  // Sun/Moon
+  cx.fillStyle='#fffbe0';cx.beginPath();cx.arc(W*0.88,H*0.1,18,0,Math.PI*2);cx.fill();
+  const moonGlow=cx.createRadialGradient(W*0.88,H*0.1,4,W*0.88,H*0.1,35);
+  moonGlow.addColorStop(0,'rgba(255,251,200,0.2)');moonGlow.addColorStop(1,'rgba(255,251,200,0)');
+  cx.fillStyle=moonGlow;cx.beginPath();cx.arc(W*0.88,H*0.1,35,0,Math.PI*2);cx.fill();
+
+  // Clouds
+  drawCloud(W*0.1+Math.sin(t*0.15)*5,H*0.06,W*0.14);
+  drawCloud(W*0.58+Math.sin(t*0.1)*4,H*0.04,W*0.18);
+  drawCloud(W*0.35+Math.sin(t*0.12)*3,H*0.12,W*0.1);
+
+  // Ground
+  const gr=cx.createLinearGradient(0,H*0.78,0,H);
+  gr.addColorStop(0,'#3a5a3a');gr.addColorStop(1,'#1a2a1a');
+  cx.fillStyle=gr;cx.fillRect(0,H*0.78,W,H*0.22);
+
+  // House walls
+  const hx=W*0.09, hw=W*0.82, hy=H*0.54, hh=H*0.26;
+  // Siding
+  cx.fillStyle='#eaeade';cx.fillRect(hx,hy,hw,hh);
+  // Brick front section
+  const brickGrad=cx.createLinearGradient(hx,hy,hx+hw*0.45,hy);
+  brickGrad.addColorStop(0,'#7a3020');brickGrad.addColorStop(1,'#9a4030');
+  cx.fillStyle=brickGrad;cx.fillRect(hx,hy,hw*0.42,hh);
+  // Brick texture
+  cx.strokeStyle='rgba(0,0,0,0.15)';cx.lineWidth=0.5;
+  for(let row=0;row<8;row++){
+    const by=hy+row*12;const offset=row%2===0?0:15;
+    for(let bc=0;bc<6;bc++) cx.strokeRect(hx+offset+bc*28,by,26,11);
+  }
+  // Windows
+  [[0.15,0.12],[0.32,0.12],[0.52,0.12],[0.68,0.12],[0.82,0.12],[0.15,0.5],[0.85,0.5]].forEach(([fx,fy])=>{
+    const wx=hx+fw(hw,fx), wy=hy+fw(hh,fy);
+    const ww=hw*0.08, wwh=hh*0.22;
+    cx.fillStyle='#88aacc';cx.fillRect(wx,wy,ww,wwh);
+    cx.strokeStyle='#fff';cx.lineWidth=1;cx.strokeRect(wx,wy,ww,wwh);
+    // Warm light inside
+    cx.fillStyle='rgba(255,220,100,0.15)';cx.fillRect(wx+1,wy+1,ww-2,wwh-2);
+    // Cross
+    cx.strokeStyle='rgba(255,255,255,0.5)';cx.lineWidth=0.8;
+    cx.beginPath();cx.moveTo(wx+ww/2,wy);cx.lineTo(wx+ww/2,wy+wwh);cx.stroke();
+    cx.beginPath();cx.moveTo(wx,wy+wwh/2);cx.lineTo(wx+ww,wy+wwh/2);cx.stroke();
+  });
+  // Door
+  const dw=hw*0.06, dh=hh*0.45;
+  cx.fillStyle='#2a1005';cx.fillRect(hx+hw*0.47,hy+hh-dh,dw,dh);
+  cx.fillStyle='#d4af37';cx.beginPath();cx.arc(hx+hw*0.47+dw*0.8,hy+hh-dh*0.5,2.5,0,Math.PI*2);cx.fill();
+
+  // ── THE ROOF ────────────────────────────────────────────────────────────────
+  const rw=hw, rh=H*0.36;
+  const rx=hx, ry=H*0.18;
+  const ridgeX=rx+rw/2, ridgeY=ry;
+  // Roof underlay
+  cx.fillStyle='#1a1a1a';
+  cx.beginPath();cx.moveTo(ridgeX,ridgeY);cx.lineTo(rx,hy);cx.lineTo(rx+rw,hy);cx.closePath();cx.fill();
+  // Roof edge
+  cx.strokeStyle='#333';cx.lineWidth=3;
+  cx.beginPath();cx.moveTo(ridgeX,ridgeY);cx.lineTo(rx-4,hy);cx.lineTo(rx+rw+4,hy);cx.lineTo(ridgeX,ridgeY);cx.stroke();
+
+  // ── DRAW SHINGLE SLOTS ─────────────────────────────────────────────────────
+  shingleSlots.forEach(slot=>drawShingleSlot(slot));
+
+  // Chimney
+  cx.fillStyle='#5a2a1a';cx.fillRect(ridgeX+rw*0.15,ridgeY-20,20,40);
+  cx.fillStyle='#4a2010';cx.fillRect(ridgeX+rw*0.15-3,ridgeY-22,26,8);
+  // Chimney smoke
+  for(let i=0;i<3;i++){
+    const sa=0.3+Math.sin(t*0.8+i)*0.2;
+    cx.fillStyle=`rgba(150,150,150,${sa})`;
+    cx.beginPath();cx.arc(ridgeX+rw*0.15+10+Math.sin(t+i)*3,ridgeY-30-i*10,4+i*2,0,Math.PI*2);cx.fill();
+  }
+
+  // Ridge cap highlight
+  cx.strokeStyle='rgba(255,255,255,0.2)';cx.lineWidth=2;
+  cx.beginPath();cx.moveTo(ridgeX-10,ridgeY+2);cx.lineTo(ridgeX+10,ridgeY+2);cx.stroke();
+
+  // ── FEATHERS ──────────────────────────────────────────────────────────────
+  feathers.forEach(f=>{
+    f.x+=f.vx;f.y+=f.vy;f.vy+=0.08;f.life-=0.018;f.rot+=0.12;
+    if(f.life<=0)return;
+    cx.save();cx.translate(f.x,f.y);cx.rotate(f.rot);
+    cx.fillStyle=`rgba(240,235,200,${f.life})`;
+    cx.beginPath();cx.ellipse(0,0,f.size,f.size*0.35,0,0,Math.PI*2);cx.fill();
+    cx.restore();
+  });
+  feathers=feathers.filter(f=>f.life>0);
+
+  // ── CHICKENS ─────────────────────────────────────────────────────────────
+  chickens.forEach(ch=>{
+    ch.x+=ch.vx;ch.y+=ch.vy;ch.vy+=0.08;
+    if(ch.y>H*0.82){ch.vy=-Math.abs(ch.vy)*0.5;ch.y=H*0.82;}
+    if(ch.x<-50||ch.x>W+50) ch.alive=false;
+    drawChicken(ch);
+  });
+  chickens=chickens.filter(c=>c.alive);
+  if(chickens.length<2&&Math.random()<0.015) spawnChicken();
+
+  // ── CHRIS POSITION ────────────────────────────────────────────────────────
+  // Chris stands near ridge on the roof
+  chris.modeTimer++;
+  if(chris.mode==='fighting'&&chris.modeTimer>350){chris.mode='coffee';chris.modeTimer=0;}
+  else if(chris.mode==='coffee'&&chris.modeTimer>200){chris.mode='fighting';chris.modeTimer=0;}
+
+  // Walk animation
+  if(chris.walking&&walkTarget){
+    walkProgress+=0.04;
+    if(walkProgress>=1){walkProgress=1;chris.walking=false;
+      if(addMode){openFormAtSlot(walkTarget);}
+    }
+    chris.x=lerp(chris.startX,walkTarget.cx/W,walkProgress);
+  }
+
+  // Chris position on roof (near ridge, slightly to left)
+  const chrisTargX = chris.walking ? chris.x : (chris.x||0.42);
+  const chrisScreenX = chrisTargX*W;
+  // Approximate roof Y at this X
+  const roofFrac=Math.abs(chrisScreenX-ridgeX)/(rw/2);
+  const chrisY=ridgeY+roofFrac*rh*0.7-30;
+  const bob=Math.sin(t*3)*1.5;
+  drawChrisAt(chrisScreenX, chrisY+bob);
+
+  t+=0.04;
+  requestAnimationFrame(draw);
+}
+function fw(total,frac){return total*frac;}
+function lerp(a,b,t){return a+(b-a)*t;}
+
+// ── INTERACTION ───────────────────────────────────────────────────────────────
+function getSlotAt(px,py){
+  return shingleSlots.find(s=>{
+    return px>=s.cx-s.w/2&&px<=s.cx+s.w/2&&py>=s.cy-s.h/2&&py<=s.cy+s.h/2;
+  });
+}
+
+cv.addEventListener('click',e=>{
+  const rect=cv.getBoundingClientRect();
+  const px=(e.clientX-rect.left),py=(e.clientY-rect.top);
+  const slot=getSlotAt(px,py);
+  if(!slot)return;
+  if(addMode){
+    if(!slot.jobId){
+      // Walk to slot then open form
+      chris.startX=chris.x||0.42;
+      chris.walking=true;walkProgress=0;walkTarget=slot;
+    }
+    return;
+  }
+  if(slot.jobId){
+    slot.glowing=true;slot.glowTimer=60;
+    openZoom(slot.jobId);
+  }
+});
+
+cv.addEventListener('touchend',e=>{
+  e.preventDefault();
+  const t2=e.changedTouches[0];
+  const rect=cv.getBoundingClientRect();
+  const px=t2.clientX-rect.left,py=t2.clientY-rect.top;
+  const slot=getSlotAt(px,py);
+  if(!slot)return;
+  if(addMode){
+    if(!slot.jobId){
+      chris.startX=chris.x||0.42;
+      chris.walking=true;walkProgress=0;walkTarget=slot;
+    }
+    return;
+  }
+  if(slot.jobId) openZoom(slot.jobId);
+},{passive:false});
+
+cv.addEventListener('mousemove',e=>{
+  const rect=cv.getBoundingClientRect();
+  const px=e.clientX-rect.left,py=e.clientY-rect.top;
+  shingleSlots.forEach(s=>s.hovered=false);
+  const slot=getSlotAt(px,py);
+  if(slot){slot.hovered=true;cv.style.cursor='pointer';}
+  else cv.style.cursor='default';
+});
+
+// ── ZOOM DETAIL ───────────────────────────────────────────────────────────────
+function openZoom(jobId){
+  zoomedJobId=jobId;
+  const job=jobs.find(j=>j.id===jobId);if(!job)return;
+  const pc=PHASE_COLORS[job.phase]||'#555';
+  const el=id=>document.getElementById(id);
+  el('zc-phase').textContent=job.phase;
+  el('zc-phase').style.background=pc+'22';
+  el('zc-phase').style.color=pc;
+  el('zc-name').textContent=job.name;
+  el('zc-date').textContent=(job.type?TYPE_ICONS[job.type]+' '+job.type+' · ':'')+fmtDate(job.date);
+  el('zc-contract').textContent=job.contract>0?'$'+job.contract.toLocaleString():'—';
+  el('zc-payout').textContent=job.payout>0?'$'+job.payout.toLocaleString():'Pending';
+  el('zc-carrier').textContent=job.carrier||'—';
+  const pct=job.contract>0?((job.payout/job.contract)*100).toFixed(1)+'%':'—';
+  el('zc-pct').textContent=pct;
+  el('zc-pct').style.color=parseFloat(pct)>=20?'#3db87a':parseFloat(pct)>=12?'#c8922a':'#555c70';
+  el('zc-notes').textContent=job.notes||'No notes';
+  el('zoomBg').classList.add('show');
+  el('zoomOverlay').classList.add('show');
+  setTimeout(()=>el('zoomCard').classList.add('show'),10);
+}
+
+function closeZoom(){
+  document.getElementById('zoomCard').classList.remove('show');
+  document.getElementById('zoomBg').classList.remove('show');
+  setTimeout(()=>document.getElementById('zoomOverlay').classList.remove('show'),350);
+  zoomedJobId=null;
+}
+
+function openEditFromZoom(){
+  closeZoom();
+  setTimeout(()=>openForm(zoomedJobId||editingId),360);
+}
+
+// ── FORM ─────────────────────────────────────────────────────────────────────
+function startAddMode(){
+  addMode=true;
+  document.getElementById('addBtn').style.background='#e05c5c';
+  document.getElementById('addBtn').textContent='✕';
+  document.getElementById('walkHint').style.display='block';
+  showToast('Tap a blank shingle to place a new job');
+}
+
+function openFormAtSlot(slot){
+  addMode=false;
+  document.getElementById('addBtn').style.background='#c8922a';
+  document.getElementById('addBtn').textContent='+';
+  document.getElementById('walkHint').style.display='none';
+  openForm(null);
+}
+
+function openForm(jobId){
+  editingId=jobId;
+  const job=jobId?jobs.find(j=>j.id===jobId):null;
+  document.getElementById('fc-title').textContent=job?'Edit Job':'New Job';
+  document.getElementById('f-name').value=job?.name||'';
+  document.getElementById('f-type').value=job?.type||'Roof';
+  document.getElementById('f-date').value=job?.date||new Date().toISOString().split('T')[0];
+  document.getElementById('f-phase').value=job?.phase||'Lead';
+  document.getElementById('f-contract').value=job?.contract||'';
+  document.getElementById('f-payout').value=job?.payout||'';
+  document.getElementById('f-carrier').value=job?.carrier||'';
+  document.getElementById('f-notes').value=job?.notes||'';
+  document.getElementById('f-delete').style.display=job?'block':'none';
+  document.getElementById('formOverlay').classList.add('show');
+}
+
+function closeForm(){
+  addMode=false;
+  document.getElementById('addBtn').style.background='#c8922a';
+  document.getElementById('addBtn').textContent='+';
+  document.getElementById('walkHint').style.display='none';
+  document.getElementById('formOverlay').classList.remove('show');
 }
 
 async function saveJob(){
@@ -383,429 +828,42 @@ async function saveJob(){
   if(!name){showToast('Enter a name');return;}
   const job={
     id:editingId||Date.now().toString(),
-    name,
-    type:document.getElementById('f-type').value,
+    name, type:document.getElementById('f-type').value,
     date:document.getElementById('f-date').value,
     phase:document.getElementById('f-phase').value,
     contract:parseFloat(document.getElementById('f-contract').value)||0,
     payout:parseFloat(document.getElementById('f-payout').value)||0,
+    carrier:document.getElementById('f-carrier').value,
     notes:document.getElementById('f-notes').value,
   };
-  if(editingId){
-    const idx=jobs.findIndex(j=>j.id===editingId);
-    if(idx>=0)jobs[idx]=job;
-  } else {
-    jobs.unshift(job);
-  }
-  saveToStorage();
-  closeModal('formModal');
-  renderAll();
-  showToast(editingId?'Saving...':'Saving...');
-  // Sync to sheet
-  try{
-    await apiCall('save', job);
-    showToast(editingId?'Job updated ✓':'Job added ✓');
-  }catch(e){showToast('Saved locally');}
+  if(editingId){const i=jobs.findIndex(j=>j.id===editingId);if(i>=0)jobs[i]=job;}
+  else jobs.push(job);
+  saveLocal();assignJobsToSlots();updateHUD();closeForm();
+  showToast(editingId?'Job updated ✓':'Job placed on roof ✓');
+  try{await apiCall('save',job);}catch(e){}
 }
 
 async function deleteJob(){
   if(!editingId||!confirm('Delete this job?'))return;
-  const id = editingId;
-  jobs=jobs.filter(j=>j.id!==id);
-  saveToStorage();
-  closeModal('formModal');
-  renderAll();
-  showToast('Deleted');
-  try{ await apiCall('delete', {id}); }catch(e){}
+  jobs=jobs.filter(j=>j.id!==editingId);
+  saveLocal();assignJobsToSlots();updateHUD();closeForm();showToast('Deleted');
+  try{await apiCall('delete',{id:editingId});}catch(e){}
 }
-
-// ─── MODAL HELPERS ────────────────────────────────────────────────────────────
-function openModal(id){document.getElementById(id).classList.add('show');}
-function closeModal(id){document.getElementById(id).classList.remove('show');}
-document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');}));
 
 function fmtDate(d){
   if(!d)return'';
-  try{return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
-  catch(e){return d;}
+  try{return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}catch(e){return d;}
 }
 
 function showToast(msg){
-  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2000);
+  const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2500);
 }
 
-function renderAll(){renderStats();renderJobs();}
-
-// ─── ANIMATED SCENE ────────────────────────────────────────────────────────────
-const canvas = document.getElementById('scene');
-const ctx = canvas.getContext('2d');
-let t = 0;
-let mode = 'fighting'; // fighting | coffee
-let modeTimer = 0;
-let chickens = [];
-let feathers = [];
-let stars = [];
-let batSwing = 0;
-let batDir = 1;
-let coffeeAlpha = 0;
-
-// Init chickens
-for(let i=0;i<4;i++) chickens.push({
-  x: 40+i*60, y: 0, vx: (Math.random()-0.5)*3,
-  vy: -2-Math.random()*2, alive: true,
-  rot: 0, phase: Math.random()*Math.PI*2
-});
-
-function resizeCanvas(){
-  canvas.width=canvas.offsetWidth*window.devicePixelRatio;
-  canvas.height=canvas.offsetHeight*window.devicePixelRatio;
-  ctx.scale(window.devicePixelRatio,window.devicePixelRatio);
-}
-resizeCanvas();
-window.addEventListener('resize',resizeCanvas);
-
-canvas.addEventListener('click',()=>{
-  if(mode==='coffee'){mode='fighting';modeTimer=0;showToast("Back to work! 🦅");}
-  else{showToast("GET WRECKED 🏏");}
-});
-
-function spawnChicken(W,H){
-  chickens.push({
-    x: Math.random()<0.5?-20:W+20,
-    y: H*0.5+Math.random()*H*0.2,
-    vx: Math.random()<0.5?2:-2,
-    vy: -1-Math.random()*1.5,
-    alive: true, rot: 0, phase: Math.random()*Math.PI*2
-  });
-}
-
-function spawnFeathers(x,y){
-  for(let i=0;i<6;i++) feathers.push({
-    x,y,vx:(Math.random()-0.5)*5,vy:-2-Math.random()*3,
-    rot:Math.random()*Math.PI*2,life:1,size:3+Math.random()*4
-  });
-}
-
-function drawGokuHair(ctx,cx,cy,sc){
-  ctx.fillStyle='#FFD700';
-  // Goku super saiyan spiky hair
-  const spikes=[
-    [-4,-18,7,16],[-1,-24,6,14],[4,-22,7,15],
-    [9,-18,6,14],[12,-12,5,12],[-8,-12,5,11]
-  ];
-  spikes.forEach(([dx,dy,w,h])=>{
-    ctx.save();
-    ctx.translate(cx+dx*sc,cy+dy*sc);
-    ctx.rotate(((dx>0?15:-15)+Math.sin(t*2)*3)*Math.PI/180);
-    ctx.beginPath();
-    ctx.moveTo(-w*sc/2,h*sc/2);
-    ctx.lineTo(w*sc/2,h*sc/2);
-    ctx.lineTo(0,-h*sc/2);
-    ctx.closePath();ctx.fill();
-    ctx.restore();
-  });
-  // Hair glow aura
-  const aura=ctx.createRadialGradient(cx,cy-10*sc,2,cx,cy-10*sc,22*sc);
-  aura.addColorStop(0,'rgba(255,220,0,0.4)');
-  aura.addColorStop(1,'rgba(255,220,0,0)');
-  ctx.fillStyle=aura;
-  ctx.beginPath();ctx.arc(cx,cy-10*sc,22*sc,0,Math.PI*2);ctx.fill();
-}
-
-function drawChicken(ctx,c,W,H){
-  const bob=Math.sin(t*3+c.phase)*2;
-  const cx=c.x, cy=c.y+bob;
-  ctx.save();ctx.translate(cx,cy);ctx.rotate(c.rot);
-  // Body
-  ctx.fillStyle='#f5f0e0';
-  ctx.beginPath();ctx.ellipse(0,0,10,8,0,0,Math.PI*2);ctx.fill();
-  // Head
-  ctx.fillStyle='#f5f0e0';
-  ctx.beginPath();ctx.arc(10,-4,6,0,Math.PI*2);ctx.fill();
-  // Beak
-  ctx.fillStyle='#e8a020';
-  ctx.beginPath();ctx.moveTo(16,-4);ctx.lineTo(20,-3);ctx.lineTo(16,-2);ctx.closePath();ctx.fill();
-  // Eye
-  ctx.fillStyle='#222';ctx.beginPath();ctx.arc(12,-5,1.5,0,Math.PI*2);ctx.fill();
-  // Comb
-  ctx.fillStyle='#e02020';
-  ctx.beginPath();ctx.arc(10,-10,3,0,Math.PI);ctx.fill();
-  // Legs
-  ctx.strokeStyle='#e8a020';ctx.lineWidth=1.5;
-  ctx.beginPath();ctx.moveTo(-2,7);ctx.lineTo(-4,14);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(2,7);ctx.lineTo(4,14);ctx.stroke();
-  // Wings flap
-  const flap=Math.sin(t*6+c.phase)*15;
-  ctx.fillStyle='#e0d8c0';
-  ctx.save();ctx.rotate(flap*Math.PI/180);
-  ctx.beginPath();ctx.ellipse(-5,-2,10,5,Math.PI/6,0,Math.PI*2);ctx.fill();
-  ctx.restore();
-  ctx.restore();
-}
-
-function drawScene(){
-  const W=canvas.offsetWidth, H=canvas.offsetHeight;
-  ctx.clearRect(0,0,W,H);
-
-  // Sky
-  const sky=ctx.createLinearGradient(0,0,0,H*0.65);
-  sky.addColorStop(0,'#4a90d9');sky.addColorStop(1,'#87CEEB');
-  ctx.fillStyle=sky;ctx.fillRect(0,0,W,H*0.65);
-
-  // Ground
-  const gr=ctx.createLinearGradient(0,H*0.65,0,H);
-  gr.addColorStop(0,'#5a8a5a');gr.addColorStop(1,'#3a5a3a');
-  ctx.fillStyle=gr;ctx.fillRect(0,H*0.65,W,H*0.35);
-
-  // Clouds
-  drawCloud(ctx,W*0.12+Math.sin(t*0.2)*5,H*0.08,55);
-  drawCloud(ctx,W*0.65+Math.sin(t*0.15)*6,H*0.05,70);
-
-  // Sun with aura
-  ctx.fillStyle='#FFD700';
-  ctx.beginPath();ctx.arc(W*0.87,H*0.1,16,0,Math.PI*2);ctx.fill();
-  for(let i=0;i<8;i++){
-    const a=i*Math.PI/4+t*0.4;
-    ctx.strokeStyle='rgba(255,215,0,0.5)';ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(W*0.87+Math.cos(a)*20,H*0.1+Math.sin(a)*20);
-    ctx.lineTo(W*0.87+Math.cos(a)*28,H*0.1+Math.sin(a)*28);ctx.stroke();
-  }
-
-  // House (smaller, background)
-  const hx=W*0.62, hy=H*0.3;
-  ctx.fillStyle='#eaeade';ctx.fillRect(hx,hy,80,60);
-  ctx.fillStyle='#8B3A2A';ctx.fillRect(hx,hy,40,60);
-  ctx.fillStyle='#2a2a2a';
-  ctx.beginPath();ctx.moveTo(hx-8,hy);ctx.lineTo(hx+40,hy-30);ctx.lineTo(hx+88,hy);ctx.closePath();ctx.fill();
-  ctx.fillStyle='#3a1a0a';ctx.fillRect(hx+33,hy+38,14,22);
-  ctx.fillStyle='#88aacc';
-  ctx.fillRect(hx+6,hy+14,16,13);ctx.fillRect(hx+50,hy+14,16,13);
-
-  // Active badge on house
-  const ac=jobs.filter(j=>j.phase!=='Complete').length;
-  if(ac>0){
-    ctx.fillStyle='#c8922a';ctx.beginPath();ctx.arc(hx+88,hy-18,11,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#000';ctx.font='bold 10px Arial';ctx.textAlign='center';
-    ctx.fillText(ac,hx+88,hy-14);ctx.textAlign='left';
-  }
-
-  // ── MODE SWITCH ──────────────────────────────────────────────────────────────
-  modeTimer++;
-  if(mode==='fighting'&&modeTimer>400){mode='coffee';modeTimer=0;coffeeAlpha=0;}
-  else if(mode==='coffee'&&modeTimer>220){mode='fighting';modeTimer=0;
-    // Respawn chickens when back to fighting
-    for(let i=0;i<3;i++) spawnChicken(W,H);
-  }
-
-  const CX=W*0.28, CY=H*0.52;
-
-  if(mode==='fighting'){
-    // Bat swing animation
-    batSwing+=0.18*batDir;
-    if(batSwing>1.4||batSwing<-0.3){batDir*=-1;
-      if(batSwing>1){
-        spawnFeathers(CX+30,CY-10);
-        // Hit nearest chicken
-        chickens.forEach(c=>{
-          if(c.alive&&Math.abs(c.x-CX)<60&&Math.abs(c.y-CY)<40){
-            c.vx=(c.x>CX?4:-4)+Math.random()*2;c.vy=-5-Math.random()*3;
-          }
-        });
-      }
-    }
-
-    // Update chickens
-    chickens.forEach(c=>{
-      if(!c.alive)return;
-      c.x+=c.vx;c.y+=c.vy;c.vy+=0.15;
-      c.rot+=c.vx*0.05;
-      if(c.y>H*0.7){c.vy=-Math.abs(c.vy)*0.6;c.rot=0;}
-      if(c.x<-40||c.x>W+40) c.alive=false;
-    });
-    chickens=chickens.filter(c=>c.alive||(c.y<H+30));
-    if(chickens.filter(c=>c.alive).length<2&&Math.random()<0.02) spawnChicken(W,H);
-
-    // Feathers
-    feathers.forEach(f=>{f.x+=f.vx;f.y+=f.vy;f.vy+=0.1;f.life-=0.02;f.rot+=0.1;});
-    feathers=feathers.filter(f=>f.life>0);
-
-    // Draw feathers
-    feathers.forEach(f=>{
-      ctx.save();ctx.translate(f.x,f.y);ctx.rotate(f.rot);
-      ctx.fillStyle=`rgba(240,235,200,${f.life})`;
-      ctx.beginPath();ctx.ellipse(0,0,f.size,f.size*0.4,0,0,Math.PI*2);ctx.fill();
-      ctx.restore();
-    });
-
-    // Draw chickens
-    chickens.forEach(c=>drawChicken(ctx,c,W,H));
-
-    // CHRIS - Goku style, fighting stance
-    const bob=Math.sin(t*4)*1.2;
-    const cy=CY+bob;
-
-    // Power aura around Chris
-    const auraR=ctx.createRadialGradient(CX,cy,5,CX,cy,38);
-    auraR.addColorStop(0,'rgba(255,220,0,0.15)');auraR.addColorStop(1,'rgba(255,220,0,0)');
-    ctx.fillStyle=auraR;ctx.beginPath();ctx.arc(CX,cy,38,0,Math.PI*2);ctx.fill();
-
-    // Shadow
-    ctx.fillStyle='rgba(0,0,0,0.2)';
-    ctx.beginPath();ctx.ellipse(CX,H*0.66,18,4,0,0,Math.PI*2);ctx.fill();
-
-    // Legs - fighting stance (wider)
-    ctx.fillStyle='#2244aa';
-    ctx.fillRect(CX-12,cy+28,10,18); // left
-    ctx.fillRect(CX+4,cy+28,10,18);  // right
-    // Shoes
-    ctx.fillStyle='#111';
-    ctx.fillRect(CX-14,cy+44,13,6);ctx.fillRect(CX+3,cy+44,13,6);
-
-    // Body - orange gi top
-    ctx.fillStyle='#e07010';
-    ctx.fillRect(CX-13,cy+8,26,22);
-    // Belt
-    ctx.fillStyle='#2244aa';ctx.fillRect(CX-13,cy+27,26,4);
-
-    // Shirt text
-    ctx.fillStyle='rgba(255,255,255,0.9)';ctx.font='bold 4.5px Arial';
-    ctx.textAlign='center';
-    ctx.fillText('F**K THE',CX,cy+18);ctx.fillText('COMMIES',CX,cy+25);
-    ctx.textAlign='left';
-
-    // Left arm - holding bat
-    ctx.fillStyle='#c8956c';
-    ctx.save();
-    ctx.translate(CX-14,cy+12);ctx.rotate(-0.3);
-    ctx.fillRect(-5,-4,9,20);ctx.restore();
-
-    // Right arm - swinging bat
-    ctx.save();
-    ctx.translate(CX+16,cy+10);ctx.rotate(batSwing);
-    ctx.fillStyle='#c8956c';ctx.fillRect(-4,-4,9,20);
-    // BAT
-    ctx.fillStyle='#8B4513';ctx.fillRect(-3,-28,7,24);
-    ctx.fillStyle='#a0522d';ctx.fillRect(-5,-38,11,12);
-    ctx.restore();
-
-    // Head
-    ctx.fillStyle='#c8956c';
-    ctx.beginPath();ctx.arc(CX,cy-2,12,0,Math.PI*2);ctx.fill();
-
-    // Eyes - determined look
-    ctx.fillStyle='#222';
-    ctx.beginPath();ctx.arc(CX-4,cy-3,2,0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.arc(CX+4,cy-3,2,0,Math.PI*2);ctx.fill();
-    // Eyebrows - angry
-    ctx.strokeStyle='#5a3520';ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(CX-7,cy-7);ctx.lineTo(CX-1,cy-5);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(CX+7,cy-7);ctx.lineTo(CX+1,cy-5);ctx.stroke();
-    // Smirk
-    ctx.strokeStyle='#7a4a2a';ctx.lineWidth=1.5;
-    ctx.beginPath();ctx.moveTo(CX-3,cy+3);ctx.quadraticCurveTo(CX,cy+6,CX+4,cy+3);ctx.stroke();
-
-    // GOKU HAIR
-    drawGokuHair(ctx,CX,cy-2,1.0);
-
-  } else {
-    // COFFEE MODE
-    coffeeAlpha=Math.min(1,coffeeAlpha+0.03);
-    const cy=CY+5;
-
-    // Stump/log to sit on
-    ctx.fillStyle='#5a3a1a';ctx.fillRect(CX-18,cy+30,36,16);
-    ctx.fillStyle='#6a4a2a';ctx.fillRect(CX-18,cy+30,36,4);
-
-    // Shadow
-    ctx.fillStyle='rgba(0,0,0,0.15)';
-    ctx.beginPath();ctx.ellipse(CX,cy+48,20,4,0,0,Math.PI*2);ctx.fill();
-
-    // Legs sitting
-    ctx.fillStyle='#2244aa';
-    ctx.save();ctx.translate(CX-8,cy+30);ctx.rotate(0.4);ctx.fillRect(-5,0,10,18);ctx.restore();
-    ctx.save();ctx.translate(CX+8,cy+30);ctx.rotate(-0.4);ctx.fillRect(-5,0,10,18);ctx.restore();
-    // Feet
-    ctx.fillStyle='#111';
-    ctx.fillRect(CX-22,cy+44,12,6);ctx.fillRect(CX+10,cy+44,12,6);
-
-    // Body - orange gi
-    ctx.fillStyle='#e07010';
-    ctx.fillRect(CX-12,cy+8,24,24);
-    ctx.fillStyle='#2244aa';ctx.fillRect(CX-12,cy+29,24,4);
-
-    // Shirt text
-    ctx.fillStyle='rgba(255,255,255,0.9)';ctx.font='bold 4.5px Arial';
-    ctx.textAlign='center';
-    ctx.fillText('F**K THE',CX,cy+20);ctx.fillText('COMMIES',CX,cy+27);
-    ctx.textAlign='left';
-
-    // Arms - holding mug
-    ctx.fillStyle='#c8956c';
-    ctx.fillRect(CX-18,cy+10,8,18);
-    // Right arm bent holding mug
-    ctx.save();ctx.translate(CX+13,cy+12);ctx.rotate(-0.6);
-    ctx.fillRect(-4,0,8,16);ctx.restore();
-
-    // Coffee mug
-    ctx.fillStyle='#ffffff';ctx.fillRect(CX+2,cy+10,18,20);
-    ctx.fillStyle='#5a3a1a';ctx.fillRect(CX+4,cy+12,14,8);
-    // Mug handle
-    ctx.strokeStyle='#ffffff';ctx.lineWidth=3;
-    ctx.beginPath();ctx.arc(CX+22,cy+18,5,Math.PI*0.4,Math.PI*1.6);ctx.stroke();
-    // Steam
-    for(let i=0;i<3;i++){
-      const sx=CX+8+i*5;
-      const steamOff=Math.sin(t*2+i*1.2)*3;
-      ctx.strokeStyle=`rgba(200,200,200,${0.5+Math.sin(t*1.5+i)*0.3})`;ctx.lineWidth=1.5;
-      ctx.beginPath();
-      ctx.moveTo(sx+steamOff,cy+8);
-      ctx.quadraticCurveTo(sx-3+steamOff,cy+2,sx+steamOff,cy-5);
-      ctx.stroke();
-    }
-
-    // Head - relaxed
-    ctx.fillStyle='#c8956c';
-    ctx.beginPath();ctx.arc(CX,cy-2,12,0,Math.PI*2);ctx.fill();
-    // Eyes - relaxed/happy
-    ctx.strokeStyle='#333';ctx.lineWidth=1.5;
-    ctx.beginPath();ctx.arc(CX-4,cy-3,3,Math.PI*1.1,Math.PI*1.9);ctx.stroke();
-    ctx.beginPath();ctx.arc(CX+4,cy-3,3,Math.PI*1.1,Math.PI*1.9);ctx.stroke();
-    // Smile
-    ctx.strokeStyle='#7a4a2a';ctx.lineWidth=1.5;
-    ctx.beginPath();ctx.arc(CX,cy+3,4,0.2,Math.PI-0.2);ctx.stroke();
-    // Eyebrows relaxed
-    ctx.strokeStyle='#5a3520';ctx.lineWidth=1.5;
-    ctx.beginPath();ctx.moveTo(CX-7,cy-7);ctx.lineTo(CX-2,cy-8);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(CX+7,cy-7);ctx.lineTo(CX+2,cy-8);ctx.stroke();
-
-    // Goku hair
-    drawGokuHair(ctx,CX,cy-2,1.0);
-
-    // "Coffee break" bubble
-    ctx.fillStyle='rgba(255,255,255,0.9)';
-    ctx.beginPath();ctx.roundRect(CX+22,cy-28,70,22,8);ctx.fill();
-    ctx.fillStyle='#333';ctx.font='bold 9px Arial';
-    ctx.fillText('coffee break ☕',CX+26,cy-13);
-    // Bubble tail
-    ctx.fillStyle='rgba(255,255,255,0.9)';
-    ctx.beginPath();ctx.moveTo(CX+22,cy-12);ctx.lineTo(CX+14,cy-6);ctx.lineTo(CX+28,cy-8);ctx.closePath();ctx.fill();
-  }
-
-  t+=0.04;
-  requestAnimationFrame(drawScene);
-}
-
-function drawCloud(ctx,x,y,w){
-  ctx.fillStyle='rgba(255,255,255,0.88)';
-  [[0,0,w*0.38],[w*0.22,-7,w*0.33],[w*0.48,0,w*0.33],[w*0.72,0,w*0.28]].forEach(([dx,dy,r])=>{
-    ctx.beginPath();ctx.arc(x+dx,y+dy,r,0,Math.PI*2);ctx.fill();
-  });
-}
-
-// Init
-loadFromStorage();
-drawScene();
+// ── INIT ─────────────────────────────────────────────────────────────────────
+resize();
+loadJobs().then(()=>{assignJobsToSlots();updateHUD();});
+draw();
 </script>
 </body>
 </html>
