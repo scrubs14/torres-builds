@@ -294,9 +294,9 @@ async function loadJobs(){
 }
 
 async function upsertJob(job){
-  await sbFetch('/rest/v1/builds_jobs?id=eq.'+job.id,{method:'DELETE',headers:{'Prefer':''}});
   await sbFetch('/rest/v1/builds_jobs',{
     method:'POST',
+    headers:{'Prefer':'resolution=merge-duplicates'},
     body:JSON.stringify({
       id:job.id, name:job.name, type:job.type, date:job.date,
       phase:job.phase, contract:job.contract||0, payout:job.payout||0,
@@ -307,7 +307,10 @@ async function upsertJob(job){
 }
 
 async function removeJob(id){
-  await sbFetch('/rest/v1/builds_jobs?id=eq.'+id,{method:'DELETE',headers:{'Prefer':''}});
+  await sbFetch('/rest/v1/builds_jobs?id=eq.'+id,{
+    method:'DELETE',
+    headers:{'Prefer':'return=minimal'}
+  });
 }
 
 // ── STATS CALC ────────────────────────────────────────────────────────────────
