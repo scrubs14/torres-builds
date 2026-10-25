@@ -238,7 +238,8 @@ input,select,textarea,button{font-family:var(--font-b);}
 <div id="toast"></div>
 
 <script>
-const API='https://script.google.com/macros/s/AKfycbwifsHA7co0VvAc9FGtEMUyDbqNw2hFL1C67fonDYOy0AlK0YmFAWtCP0ltCV1dkqc/exec';
+const SB_URL='https://ygxucxfwelkgzwhddmfb.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlneHVjeGZ3ZWxrZ3p3aGRkbWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjI5NzE0NzIsImV4cCI6MjAzODU0NzQ3Mn0.iYT_xt3GKR7--k0FNHnFqQFMQKFOEhJGYxzXIaagaqQ';
 const ARCH=575,METAL=850,ABUILD=244.96,MBUILD=415;
 const PC={
   Lead:'#555c70',
@@ -295,42 +296,52 @@ function mapJob(j,i){
 }
 
 async function loadJobs(){
-  // ALWAYS load from localStorage first — never lose local data
-  const cached=localStorage.getItem('tb3');
-  if(cached){
-    try{jobs=JSON.parse(cached);}catch(e){}
-  }
-
-  // Only pull from sheet if we have zero jobs locally
-  if(!jobs.length){
-    try{
-      const r=await fetch(API,{method:'POST',body:JSON.stringify({action:'getAll'})});
-      const data=await r.json();
-      if(data.jobs&&data.jobs.length){
-        jobs=data.jobs.map((j,i)=>mapJob(j,i));
-        localStorage.setItem('tb3',JSON.stringify(jobs));
-      }
-    }catch(e){
-      // Sheet unavailable — that's fine, we have localStorage
+  try{
+    const data=await sb('/rest/v1/builds_jobs?select=*&order=created_at.desc');
+    if(data&&data.length){
+      jobs=data.map((j,i)=>({
+        id:j.id,
+        name:j.name||'',
+        type:j.type||'Roof',
+        date:j.date||'',
+        phase:normPhase(j.phase||'Lead'),
+        contract:parseFloat(j.contract)||0,
+        payout:parseFloat(j.payout)||0,
+        carrier:j.carrier||'',
+        squares:parseFloat(j.squares)||0,
+        notes:j.notes||'',
+        split:j.split===true,
+        splitWith:j.split_with||'',
+      }));
+      localStorage.setItem('tb3',JSON.stringify(jobs));
+    } else {
+      // Try localStorage as fallback
+      const c=localStorage.getItem('tb3');
+      if(c)jobs=JSON.parse(c);
     }
+  }catch(e){
+    // Supabase unavailable — use localStorage
+    const c=localStorage.getItem('tb3');
+    if(c)jobs=JSON.parse(c);
   }
   render();
 }
 
-async function apiCall(action,data){
-  const controller=new AbortController();
-  const timeout=setTimeout(()=>controller.abort(),8000); // 8 second timeout
-  try{
-    const r=await fetch(API,{method:'POST',body:JSON.stringify({action,...data}),signal:controller.signal});
-    clearTimeout(timeout);
-    const text=await r.text();
-    const json=JSON.parse(text);
-    if(json.error)throw new Error(json.error);
-    return json;
-  }catch(e){
-    clearTimeout(timeout);
-    throw e;
-  }
+async function sb(path,opts={}){
+  const r=await fetch(SB_URL+path,{
+    headers:{
+      'apikey':SB_KEY,
+      'Authorization':'Bearer '+SB_KEY,
+      'Content-Type':'application/json',
+      'Prefer':'return=representation',
+      ...(opts.headers||{})
+    },
+    ...opts
+  });
+  if(r.status===204)return null;
+  const data=await r.json();
+  if(data.error||data.message)throw new Error(data.message||data.error);
+  return data;
 }
 
 // ── STATS ─────────────────────────────────────────────────────────────────────
@@ -685,12 +696,31 @@ async function saveJob(){
   localStorage.setItem('tb3',JSON.stringify(jobs));
   closeForm();render();
   showToast('Saved ✓');
-  // Then sync to sheet in background — don't block the user
+  // Sync to Supabase in background
   try{
-    await apiCall('save',job);
-  }catch(e){
-    showToast('⚠️ Saved locally — sheet sync pending');
-  }
+    await sb('/rest/v1/builds_jobs?id=eq.'+job.id,{
+      method:'DELETE',headers:{'Prefer':''}
+    });
+  }catch(e){}
+  try{
+    await sb('/rest/v1/builds_jobs',{
+      method:'POST',
+      body:JSON.stringify({
+        id:job.id,
+        name:job.name,
+        type:job.type,
+        date:job.date,
+        phase:job.phase,
+        contract:job.contract||0,
+        payout:job.payout||0,
+        carrier:job.carrier||'',
+        squares:job.squares||0,
+        notes:job.notes||'',
+        split:job.split||false,
+        split_with:job.splitWith||'',
+      })
+    });
+  }catch(e){}
 }
 
 async function deleteJob(){
@@ -701,8 +731,8 @@ async function deleteJob(){
   jobs=jobs.filter(j=>j.id!==id);
   localStorage.setItem('tb3',JSON.stringify(jobs));
   closeForm();render();showToast('Deleted');
-  // Sync to sheet in background
-  try{await apiCall('delete',{id,name});}catch(e){}
+  // Sync to Supabase in background
+  try{await sb('/rest/v1/builds_jobs?id=eq.'+id,{method:'DELETE',headers:{'Prefer':''}});}catch(e){}
 }
 
 function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500);}
