@@ -277,33 +277,43 @@ const normPhase=p=>{
 const typeLabel=t=>{if(!t)return'Roof';const tl=t.toLowerCase();const p=[];if(tl.includes('roof'))p.push('Roof');if(tl.includes('gutter'))p.push('Gutters');if(tl.includes('siding'))p.push('Siding');if(tl.includes('concrete'))p.push('Concrete');if(tl.includes('deck'))p.push('Decking');if(tl.includes('handyman'))p.push('Handyman');return p.length?p.join(' + '):t;};
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
+function mapJob(j,i){
+  return {
+    id:String(j.id||j.ID||'')||String(j.name||j.Name||'x').toLowerCase().replace(/[^a-z0-9]/g,'-')+'-'+i,
+    name:String(j.name||j.Name||''),
+    type:String(j.type||j.Type||'Roof'),
+    date:String(j.date||j.Date||''),
+    phase:normPhase(String(j.phase||j.Phase||'Lead')),
+    contract:parseFloat(j.contract||j.Contract)||0,
+    payout:parseFloat(j.payout||j.Payout)||0,
+    carrier:String(j.carrier||j.Carrier||''),
+    squares:parseFloat(j.squares||j.Squares)||0,
+    notes:String(j.notes||j.Notes||''),
+    split:j.split==='true'||j.split===true,
+    splitWith:String(j.splitWith||j.SplitWith||''),
+  };
+}
+
 async function loadJobs(){
-  try{
-    const r=await fetch(API,{method:'POST',body:JSON.stringify({action:'getAll'})});
-    const data=await r.json();
-    if(data.jobs&&data.jobs.length){
-      const sheetJobs=data.jobs.map((j,i)=>({
-        id:String(j.id||j.ID||'')||String(j.name||j.Name||'x').toLowerCase().replace(/\s+/g,'-')+'-'+i,
-        name:String(j.name||j.Name||''),
-        type:String(j.type||j.Type||'Roof'),
-        date:String(j.date||j.Date||''),
-        phase:normPhase(String(j.phase||j.Phase||'Lead')),
-        contract:parseFloat(j.contract||j.Contract)||0,
-        payout:parseFloat(j.payout||j.Payout)||0,
-        carrier:String(j.carrier||j.Carrier||''),
-        squares:parseFloat(j.squares||j.Squares)||0,
-        notes:String(j.notes||j.Notes||''),
-        split:j.split==='true'||j.split===true,
-        splitWith:String(j.splitWith||j.SplitWith||''),
-      }));
-      // Use sheet data as source of truth — it's the permanent store
-      jobs=sheetJobs;
-      localStorage.setItem('tb3',JSON.stringify(jobs));
-    } else {
-      const c=localStorage.getItem('tb3');
-      if(c)jobs=JSON.parse(c);
+  // ALWAYS load from localStorage first — never lose local data
+  const cached=localStorage.getItem('tb3');
+  if(cached){
+    try{jobs=JSON.parse(cached);}catch(e){}
+  }
+
+  // Only pull from sheet if we have zero jobs locally
+  if(!jobs.length){
+    try{
+      const r=await fetch(API,{method:'POST',body:JSON.stringify({action:'getAll'})});
+      const data=await r.json();
+      if(data.jobs&&data.jobs.length){
+        jobs=data.jobs.map((j,i)=>mapJob(j,i));
+        localStorage.setItem('tb3',JSON.stringify(jobs));
+      }
+    }catch(e){
+      // Sheet unavailable — that's fine, we have localStorage
     }
-  }catch(e){const c=localStorage.getItem('tb3');if(c)jobs=JSON.parse(c);}
+  }
   render();
 }
 
